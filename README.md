@@ -27,34 +27,33 @@ Empirical research in machine learning, computational biology, climate science, 
 
 ## 2. Architecture Overview
 
-```text
-+-----------------------------------------------------------------------------------------+
-|                                    OFF-CHAIN PIPELINE                                   |
-|                                                                                         |
-|  Raw Research Data        Canonical Stream             Zstandard        EIP-4844 Blobs  |
-|  [CSV, JSON, JSONL]  ==>  [RFC 8785 Framing]    ==>   [Levels 1-19] ==> [128 KiB Blobs] |
-|                                   ||                                          ||        |
-|                           contentHash = keccak256                      FE0 Header (31B) |
-|                           recordsRoot = MerkleTree                            ||        |
-+-----------------------------------|-------------------------------------------|---------+
-                                    |                                           |
-                                    v                                           v
-+-----------------------------------------------------------------------------------------+
-|                              ETHEREUM CANCUN CONSENSUS & EVM                            |
-|                                                                                         |
-|      EVM Execution Layer                                Consensus Sidecars (4,096 Epochs)
-|      +-----------------------------------------+        +------------------------------+
-|      | DatasetRegistry.sol                     |        | Beacon Node REST API         |
-|      | - blobhash(i) verification              | <====> | - Blob 0: 4,096 BLS elements  |
-|      | - Multi-tx dataset aggregation          |        | - Blob 1: 4,096 BLS elements  |
-|      | - Optimistic property claims            |        | Retained for ~18.2 days      |
-|      | - Zero-copy JSON fraud refutation       |        +------------------------------+
-|      | - Formal citations and attestations     |                       ||
-|      +-----------------------------------------+                       ||
-+------------------------------------------------------------------------|----------------+
-                                                                         v
-                                                       Permanent Academic Archival Nodes
-                                                       [IPFS, Filecoin, University Libs]
+```mermaid
+flowchart TB
+    subgraph OffChain["Off-Chain Pipeline"]
+        direction TB
+        Raw["Raw Research Data<br/>(CSV, JSON, JSONL)"] --> Stream["Canonical Stream<br/>(RFC 8785 Framing)"]
+        Stream --> Compress["Zstandard Compression<br/>(Levels 1-19)"]
+        Compress --> Blobs["EIP-4844 Blobs<br/>(128 KiB Sidecars with FE0 Header)"]
+        Stream -.-> Commitments["Cryptographic Commitments<br/>- contentHash: keccak256(stream)<br/>- recordsRoot: MerkleTree(records)"]
+    end
+
+    subgraph Consensus["Ethereum Consensus Layer"]
+        Sidecars["Beacon Node REST API<br/>Blob Sidecars (4,096 Epochs ~18.2 Days)<br/>- 4,096 BLS12-381 Field Elements"]
+    end
+
+    subgraph Execution["Ethereum Execution Layer (EVM)"]
+        Registry["DatasetRegistry.sol<br/>- blobhash(i) verification<br/>- Multi-tx dataset aggregation<br/>- Optimistic property claims<br/>- Zero-copy JSON fraud refutation<br/>- Formal citations and attestations"]
+    end
+
+    subgraph Archival["Permanent Academic Archival"]
+        ArchiveNodes["Academic Archival Nodes<br/>(IPFS, Filecoin, University Libraries)"]
+    end
+
+    Blobs -->|"Type-3 Transaction Broadcast"| Sidecars
+    Commitments -->|"openDataset(datasetId, recordsRoot, ...)"| Registry
+    Sidecars <-->|"BLOBHASH Opcode (0x49)"| Registry
+    Sidecars -->|"Ingest during 18.2-day window"| ArchiveNodes
+    Registry -.->|"Immutable Commitments & Claims"| ArchiveNodes
 ```
 
 ---

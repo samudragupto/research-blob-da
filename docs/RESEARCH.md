@@ -58,25 +58,29 @@ Consensus nodes propagate blobs as sidecars alongside beacon blocks. Execution c
 $$\text{versioned\_hash}(C) = 0x01 \parallel \text{SHA-256}(C)[1..32]$$
 The point evaluation precompile located at address `0x0a` permits verifying that a committed polynomial $p(x)$ evaluates to $y$ at point $z$ given a KZG proof $\pi$.
 
-```
-+-------------------------------------------------------------------+
-|                        Beacon Block (Consensus)                   |
-|  +---------------------+        +-------------------------------+  |
-|  | Execution Payload   |        | Blob Sidecars (Temporary DA)  |  |
-|  | - Tx Type 3         |        | - Blob 0 (128 KiB)            |  |
-|  |   - blob_versioned_ |        | - Blob 1 (128 KiB)            |  |
-|  |     hashes          |        | - ...                         |  |
-|  |   - calldata        |        | Retained for 4,096 epochs     |  |
-|  +----------+----------+        +---------------+---------------+  |
-+-------------|-----------------------------------|-----------------+
-              |                                   |
-              v (EVM Execution)                   v (Off-Chain P2P)
-     +-----------------+                 +-----------------+
-     | DatasetRegistry |                 | Academic Nodes  |
-     | - blobhash(i)   |                 | - Reconstruct   |
-     | - recordsRoot   |                 | - Peer Review   |
-     | - contentHash   |                 | - Long-term Pin |
-     +-----------------+                 +-----------------+
+```mermaid
+flowchart TD
+    subgraph BeaconBlock["Beacon Block (Consensus Network)"]
+        subgraph ExecPayload["Execution Payload"]
+            Tx3["Transaction Type 3<br/>- blob_versioned_hashes<br/>- calldata params"]
+        end
+        subgraph Sidecars["Blob Sidecars (Temporary DA)"]
+            BlobList["Blob 0 (128 KiB)<br/>Blob 1 (128 KiB)<br/>...<br/>Retained for 4,096 epochs (~18.2 days)"]
+        end
+    end
+
+    subgraph EVM["EVM Execution Environment"]
+        Registry["DatasetRegistry.sol<br/>- blobhash(i) reader<br/>- recordsRoot verification<br/>- contentHash verification"]
+    end
+
+    subgraph P2P["Off-Chain Academic Network"]
+        AcademicNodes["Academic Indexing Nodes<br/>- Sidecar reconstruction<br/>- Peer review validation<br/>- Long-term IPFS/cold archival pinning"]
+    end
+
+    Tx3 -->|"EVM Execution"| Registry
+    BlobList -->|"Off-Chain P2P Sync"| AcademicNodes
+    Registry <-->|"BLOBHASH Opcode (0x49)"| Sidecars
+    Registry -.->|"Cryptographic Verification"| AcademicNodes
 ```
 
 ### 2.2 Threat Model and Adversarial Assumptions
@@ -121,17 +125,35 @@ To allow sub-linear, zero-knowledge, or optimistic verification of individual re
    The EVM library `MerkleLib.sol` strictly enforces position-binding traversal, preventing an adversary from presenting a valid leaf at an arbitrary or shifted record position.
 3. **Contiguous Range Proofs:** For validating contiguous subsequences of records (e.g., training epochs 10 to 50), transmitting individual Merkle paths incurs $O(k \log N)$ calldata overhead. `MerkleLib.sol` implements contiguous range verification, wherein intermediate subtrees spanned by the range are evaluated directly in memory, requiring only the boundary sibling paths ($O(\log N)$).
 
-```
-                      recordsRoot (Level 3)
-                     /                     \
-            Node 0-3                         Node 4-7
-           /        \                       /        \
-       Node 0-1     Node 2-3            Node 4-5     Node 6-7
-       /      \     /      \            /      \     /      \
-      L0      L1   L2      L3          L4      L5   L6      L7
-     (0x00)  (0x00) ...
-       |       |
-      R0      R1
+```mermaid
+graph TD
+    Root["recordsRoot<br/>(Level 3)"] --> N03["Node 0-3<br/>keccak256(0x01 || L || R)"]
+    Root --> N47["Node 4-7<br/>keccak256(0x01 || L || R)"]
+
+    N03 --> N01["Node 0-1"]
+    N03 --> N23["Node 2-3"]
+
+    N47 --> N45["Node 4-5"]
+    N47 --> N67["Node 6-7"]
+
+    N01 --> L0["Leaf 0 (0x00)"]
+    N01 --> L1["Leaf 1 (0x00)"]
+    N23 --> L2["Leaf 2 (0x00)"]
+    N23 --> L3["Leaf 3 (0x00)"]
+
+    N45 --> L4["Leaf 4 (0x00)"]
+    N45 --> L5["Leaf 5 (0x00)"]
+    N67 --> L6["Leaf 6 (0x00)"]
+    N67 --> L7["Leaf 7 (0x00)"]
+
+    R0["Record 0 (R0)"] -.-> L0
+    R1["Record 1 (R1)"] -.-> L1
+    R2["Record 2 (R2)"] -.-> L2
+    R3["Record 3 (R3)"] -.-> L3
+    R4["Record 4 (R4)"] -.-> L4
+    R5["Record 5 (R5)"] -.-> L5
+    R6["Record 6 (R6)"] -.-> L6
+    R7["Record 7 (R7)"] -.-> L7
 ```
 
 ### 3.3 Field Element Packing Strategies
@@ -154,19 +176,30 @@ A standard EIP-4844 blob comprises 4,096 elements of 32 bytes each ($131,072$ by
 
 To make blobs fully self-describing, Field Element 0 (the first 31 or 32 bytes of each blob) is reserved for a protocol header:
 
-```
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|       Magic: "RBDA"           | Ver (1) |Codec|Layou|Pack |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|       Blob Index (uint16)     |       Blob Count (uint16)     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                   Body Length (uint32)                        |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|               Content Tag (First 15 bytes of contentHash)     |
-|                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+```mermaid
+flowchart TD
+    subgraph HeaderLayout["Field Element 0 Protocol Header (31 Bytes)"]
+        direction TB
+        subgraph Row1["Bytes 0 - 7"]
+            direction LR
+            B03["Magic: 'RBDA'<br/>(Bytes 0..3, 4B)"]
+            B4["Version: 0x01<br/>(Byte 4, 1B)"]
+            B5["Codec: 0=raw, 1=zstd<br/>(Byte 5, 1B)"]
+            B6["Layout: 0=stream<br/>(Byte 6, 1B)"]
+            B7["Packing: 0=fe31, 1=fe254<br/>(Byte 7, 1B)"]
+        end
+        subgraph Row2["Bytes 8 - 15"]
+            direction LR
+            B89["Blob Index: uint16<br/>(Bytes 8..9, 2B)"]
+            B1011["Blob Count: uint16<br/>(Bytes 10..11, 2B)"]
+            B1215["Body Length: uint32<br/>(Bytes 12..15, 4B)"]
+        end
+        subgraph Row3["Bytes 16 - 30"]
+            direction LR
+            B1630["Content Tag: First 15 bytes of contentHash<br/>(Bytes 16..30, 15B)"]
+        end
+        Row1 --> Row2 --> Row3
+    end
 ```
 
 - **Magic (4B):** Constant ASCII `RBDA` (`0x52424441`).
@@ -182,26 +215,25 @@ To make blobs fully self-describing, Field Element 0 (the first 31 or 32 bytes o
 
 The on-chain anchoring system is governed by `DatasetRegistry.sol`, structured as follows:
 
-```
-                            DatasetRegistry.sol
-    +-----------------------------------------------------------------+
-    | - datasets: mapping(bytes32 => DatasetHeader)                   |
-    | - datasetBlobs: mapping(bytes32 => bytes32[])                   |
-    | - propertyClaims: mapping(bytes32 => PropertyClaim[])           |
-    | - citations: mapping(bytes32 => Citation[])                     |
-    +-----------------------------------------------------------------+
-               |                              |
-               v                              v
-        Libraries Used                 External Interface
-    +--------------------+     +--------------------------------+
-    | MerkleLib.sol      |     | - openDataset(...)             |
-    | BlobLib.sol        |     | - appendExternalBlobs(...)     |
-    | JsonFieldLib.sol   |     | - finalizeDataset(...)         |
-    +--------------------+     | - submitPropertyClaim(...)     |
-                               | - refutePropertyClaim(...)     |
-                               | - checkpointRecord(...)        |
-                               | - citeDataset(...)             |
-                               +--------------------------------+
+```mermaid
+flowchart TD
+    subgraph Registry["DatasetRegistry.sol (Core Registry)"]
+        direction TB
+        State["State Storage<br/>- datasets: mapping(bytes32 => DatasetHeader)<br/>- datasetBlobs: mapping(bytes32 => bytes32[])<br/>- propertyClaims: mapping(bytes32 => PropertyClaim[])<br/>- citations: mapping(bytes32 => Citation[])"]
+        Interface["External Interface<br/>- openDataset(...)<br/>- appendExternalBlobs(...)<br/>- finalizeDataset(...)<br/>- submitPropertyClaim(...)<br/>- refutePropertyClaim(...)<br/>- checkpointRecord(...)<br/>- citeDataset(...)"]
+        State --- Interface
+    end
+
+    subgraph Libraries["Solidity Protocol Libraries"]
+        direction TB
+        Merkle["MerkleLib.sol<br/>- Single-leaf verify(...)<br/>- verifyRange(...) contiguous proof<br/>- Domain separation: 0x00 leaf / 0x01 node"]
+        Blob["BlobLib.sol<br/>- blobhash(i) reader<br/>- Versioned hash generation (0x01 prefix)<br/>- Point evaluation precompile (0x0a)"]
+        Json["JsonFieldLib.sol<br/>- Zero-copy readFixed(...)<br/>- Calldata parser for optimistic fraud refutation"]
+    end
+
+    Registry -->|"Inclusion & Range Proofs"| Merkle
+    Registry -->|"Blob Verification"| Blob
+    Registry -->|"Property Refutation"| Json
 ```
 
 #### Core Contract Invariants:
