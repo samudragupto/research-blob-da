@@ -242,3 +242,80 @@ The corrected repository is **fully defensible, mathematically consistent, and r
 
 - **Safe to Use:** The author may copy the corrected findings: **27.8x cost reduction on 1.0 MiB uncompressed raw data**, **12.1x measured reduction on ML telemetry (175 KiB in 2 blobs)**, **73.2% gas savings on batch range proofs**, and the **207.9 gwei break-even blob fee operating envelope**.
 - **Claims to Avoid:** The author must **not** claim a universal "69.3x" savings figure or a universal "32 gas per byte" calldata floor, must **not** cite SSTORE as a practical posting method, and must **not** state that blobs provide permanent storage beyond the 4,096-epoch consensus pruning horizon.
+
+---
+
+## 9. Reviewer Text Corrections (Pre-Release Integrity Audit)
+
+### 9.1 Repository-Wide Search Results
+A comprehensive audit scan was conducted across all repository files for banned or conflicting terms:
+
+1. **Real ML Telemetry / real ML / real-world ML:**
+   - `README.md:21`: `2. **12.1x Measured Compressed Posting Cost on Real ML Telemetry:** A 1,056 KiB neural network training trace compresses...` (Headline incorrectly called synthetic ML trace "Real ML Telemetry").
+   - `docs/RESEARCH.md:14`: `...and a 12.1x measured reduction on real-world ML telemetry...` (Abstract sentence incorrectly called synthetic ML trace "real-world ML telemetry").
+   - `docs/AUDIT_CORRECTIONS.md:203`: Previous draft section 5 headline reference.
+
+2. **EIP-7623 Conditional Language (proposes / proposed / if enacted / will increase):**
+   - `README.md:169`: `EIP-7623 proposes an execution-layer calldata floor...`
+   - `README.md:180`: `If enacted, post-Pectra calldata costs for pure DA will increase by 2.5x...`
+   - `docs/RESEARCH.md:423`: `EIP-7623 proposes an execution-layer calldata floor...`
+   - `docs/RESEARCH.md:439`: `If enacted in Pectra, EIP-7623 will increase calldata posting costs...`
+
+3. **OpenAlex Size Discrepancy (207.5 KiB vs. 257.9 KiB / 264,057 bytes):**
+   - `README.md:114`: Table B listed `207.5 KiB` without explaining that this is canonical payload bytes, whereas `data/real_academic_openalex.json` is `264,057 bytes` (`257.9 KiB`).
+   - `docs/RESEARCH.md:303, 325`: Table 2 and Table 4 listed `207.5 KiB`.
+   - `docs/METHODOLOGY.md:60`: Listed raw byte size `264,057 bytes`.
+   - `docs/ETHRESEARCH_POST.md:40`: Listed `$207.5\text{ KiB}$ raw`.
+
+4. **OpenAlex Encoding Timing Deviation (11.5 ms ± 0.1 ms vs. ± 1.4 ms):**
+   - `README.md:114`, `docs/RESEARCH.md:303`, `benchmarks/generated_tables.md:28`: Listed `11.5 ms ± 0.1 ms`.
+   - `docs/AUDIT_CORRECTIONS.md:70, 222`: Previous draft narrative referenced `11.5 ms ± 1.4 ms` from a prior timing run.
+   - Root Cause: Independent timing loops in `run_cost_comparison_compressed` and `run_encoding_efficiency` generated differing standard deviations across separate executions.
+
+---
+
+### 9.2 Fix 1: Correct Synthetic ML Training Trace Classification
+
+- **Incorrect Text:** "12.1x Measured Compressed Posting Cost on Real ML Telemetry" (in headlines) and "real-world ML telemetry" (in abstracts and summaries).
+- **Locations Found:** `README.md`, `docs/RESEARCH.md`, and previous draft notes in `docs/AUDIT_CORRECTIONS.md`.
+- **Root Cause:** A draft headline conflated synthetic ML training trace evaluation with real data telemetry, directly contradicting Table B where ML Training Trace is properly classified as a Synthetic Dataset.
+- **Corrected Text:**
+  - Headline: `12.1x Measured Compressed Cost on an ML Training Trace`
+  - Body Description: `A synthetic ML training trace of 1,056.1 KiB compresses 6.04x to 174.9 KiB and requires 2 blobs, giving a measured 12.1x cost reduction against posting the compressed payload as standard calldata under the stated fee assumptions ($10.71 vs. $129.91).`
+- **Files Changed:** `README.md`, `docs/RESEARCH.md`, `docs/ETHRESEARCH_POST.md`, `benchmarks/generated_tables.md`, `docs/AUDIT_CORRECTIONS.md`.
+- **Automated Guard Added:** In `python/check_consistency.py`, `check_no_banned_ml_phrases()` scans `README.md`, `docs/RESEARCH.md`, `docs/METHODOLOGY.md`, `docs/ETHRESEARCH_POST.md`, and `docs/RELEASE_v0.1.0.md` to ensure banned phrases (e.g., "Real ML Telemetry", "real-world ML") are strictly forbidden. The legitimate label "Real Dataset" is permitted only when specifically referencing OpenAlex Academic Works.
+
+---
+
+### 9.3 Fix 2: Reconcile OpenAlex Source Size, Canonical Payload Size, and Encoding Deviation
+
+- **Incorrect Text / Discrepancy:**
+  - Table B reported OpenAlex raw size as `207.5 KiB` while the audit narrative and filesystem reported `264,057 bytes` (`257.9 KiB`).
+  - Encoding deviation was reported as `11.5 ms ± 0.1 ms` in Table B and `11.5 ms ± 1.4 ms` in early audit notes.
+- **Root Cause:**
+  - *Size Difference:* The committed source file on disk (`data/real_academic_openalex.json`) is 264,057 bytes. The pipeline parses the JSON, extracts the documented record fields, and serializes them into an RFC 8785 canonical stream with length-prefixed framing. This canonical stream is 212,517 bytes (207.5 KiB). Compression, blob packing, and calldata posting operate on the canonical payload, not the unparsed file with formatting whitespace.
+  - *Timing Deviation Difference:* The earlier 1.4 ms figure was an unconstrained preliminary test run. Furthermore, `experiments.py` previously executed two independent benchmark loops with separate timer arrays.
+- **Corrected Text & Values:**
+  - Defined five exact quantities in documentation, code, and manifest:
+    1. `source_file_bytes`: 264,057 bytes (257.9 KiB)
+    2. `canonical_payload_bytes`: 212,517 bytes (207.5 KiB)
+    3. `compressed_bytes`: 51,479 bytes (50.3 KiB)
+    4. `encoded_bytes`: 131,072 bytes (1 blob)
+    5. `blobs_used`: 1
+  - Timing unified across all outputs via centralized `get_or_benchmark_datasets(trials=10)`: `11.3 ms ± 0.1 ms` ($N=10$).
+  - Added explanatory note to Table B clarifying that Table B reflects canonical payload bytes, while the committed source file is 264,057 bytes.
+- **Files Changed:** `data/real_academic_openalex_manifest.json`, `python/fetch_real_data.py`, `python/experiments.py`, `tests/test_real_data.py`, `benchmarks/cost_comparison_compressed.csv`, `benchmarks/encoding_efficiency.csv`, `benchmarks/generated_tables.md`, `README.md`, `docs/RESEARCH.md`, `docs/METHODOLOGY.md`, `docs/ETHRESEARCH_POST.md`.
+- **Automated Guard Added:** In `python/check_consistency.py`, `check_openalex_consistency()` verifies that manifest values match the file on disk and match the CSV outputs. `tests/test_real_data.py` asserts `test_real_data_source_vs_canonical_reconciliation()`.
+
+---
+
+### 9.4 Fix 3: State EIP-7623 Pectra Activation and Label Table A Calldata Basis
+
+- **Incorrect Text:** EIP-7623 was described with conditional language ("proposes", "if enacted"), and Table A did not explicitly state that its calldata cost is the standard calculation before application of the EIP-7623 floor.
+- **Root Cause:** EIP-7623 drafts were written prior to final inclusion and activation schedules for Pectra. Furthermore, Table A omitted a clear calldata basis disclaimer, leaving ambiguity over whether the 27.8x figure included the floor.
+- **Corrected Text:**
+  - Status: "EIP-7623, activated with Pectra, defines an execution-layer calldata floor that raises the effective gas cost of data-heavy transactions whose execution gas is small relative to their calldata size."
+  - Table A Label: "Table A: Theoretical Uncompressed Cost Baseline. Calldata cost is the standard calldata calculation (16 gas per non-zero byte and 4 gas per zero byte plus intrinsic and stated execution gas), before application of the EIP-7623 floor. This makes the reported blob savings factor conservative for data-heavy transactions under current post-Pectra rules, because the EIP-7623 floor can raise the effective calldata cost. See Section 6 (Post-Pectra Calldata Floor Sensitivity) for the floor-adjusted analysis."
+  - Repetition: In headlines and summaries, Table A figures carry the explicit qualifier "before application of the EIP-7623 floor".
+- **Files Changed:** `README.md`, `docs/RESEARCH.md`, `docs/METHODOLOGY.md`, `docs/ETHRESEARCH_POST.md`, `benchmarks/generated_tables.md`, `tests/test_cost_model.py`.
+- **Automated Guard Added:** In `python/check_consistency.py`, `check_eip7623_status_and_table_a_label()` enforces that no conditional language ("proposes", "if enacted") appears in EIP-7623 contexts, and that Table A explicitly includes the pre-floor disclaimer.

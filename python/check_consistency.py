@@ -142,6 +142,102 @@ def check_no_obsolete_claims(file_path: str):
     print(f"[PASS] No obsolete EIP-7623 headline claims in {file_path}.")
 
 
+def check_no_banned_ml_phrases():
+    """Ensures synthetic ML traces are never described as real in headlines or body text."""
+    target_files = [
+        "README.md",
+        "docs/RESEARCH.md",
+        "docs/METHODOLOGY.md",
+        "docs/ETHRESEARCH_POST.md",
+        "docs/RELEASE_v0.1.0.md",
+    ]
+    banned_patterns = [
+        (re.compile(r"real\s+ml\s+telemetry", re.IGNORECASE), "Real ML Telemetry"),
+        (re.compile(r"real-world\s+ml", re.IGNORECASE), "real-world ML"),
+        (re.compile(r"real\s+ml", re.IGNORECASE), "real ML"),
+        (re.compile(r"measured\s+real\s+ml", re.IGNORECASE), "measured real ML"),
+    ]
+
+    for p in target_files:
+        if not os.path.exists(p):
+            continue
+        with open(p, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        for idx, line in enumerate(lines, 1):
+            for pat, label in banned_patterns:
+                if pat.search(line):
+                    raise ValueError(
+                        f"Found banned classification phrase '{label}' in {p}:{idx}: {line.strip()}"
+                    )
+    print("[PASS] Verified: Synthetic ML trace is never classified as real.")
+
+
+def check_openalex_consistency():
+    """Validates OpenAlex source file vs canonical payload sizes and unified timing deviation."""
+    df_comp = pd.read_csv("benchmarks/cost_comparison_compressed.csv")
+    row = df_comp[df_comp["dataset_name"].str.contains("OpenAlex")].iloc[0]
+
+    assert (
+        int(row["source_file_bytes"]) == 264057
+    ), "OpenAlex source_file_bytes must be 264,057"
+    assert (
+        int(row["canonical_payload_bytes"]) == 212517
+    ), "OpenAlex canonical_payload_bytes must be 212,517"
+    assert int(row["blobs_used"]) == 1, "OpenAlex must require exactly 1 blob"
+
+    # Ensure stale timing deviation (e.g. 1.4 ms) is absent from published documentation
+    for p in ["README.md", "docs/RESEARCH.md", "docs/ETHRESEARCH_POST.md"]:
+        if os.path.exists(p):
+            with open(p, "r", encoding="utf-8") as f:
+                c = f.read()
+            if "11.5 ms ± 1.4 ms" in c or "11.5 ms +/- 1.4 ms" in c:
+                raise ValueError(f"Found stale timing deviation '1.4 ms' in {p}")
+    print("[PASS] OpenAlex source/canonical sizes and timing deviation verified.")
+
+
+def check_eip7623_status_and_table_a_label():
+    """Ensures EIP-7623 is stated as activated with Pectra and Table A is labeled pre-floor."""
+    target_files = [
+        "README.md",
+        "docs/RESEARCH.md",
+        "docs/METHODOLOGY.md",
+        "docs/ETHRESEARCH_POST.md",
+    ]
+    conditional_patterns = [
+        re.compile(r"EIP-7623\s+propos\w*", re.IGNORECASE),
+        re.compile(r"if\s+(?:EIP-7623\s+is\s+)?enacted", re.IGNORECASE),
+    ]
+
+    for p in target_files:
+        if not os.path.exists(p):
+            continue
+        with open(p, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        for idx, line in enumerate(lines, 1):
+            for pat in conditional_patterns:
+                if pat.search(line):
+                    raise ValueError(
+                        f"Found outdated conditional language for EIP-7623 in {p}:{idx}: {line.strip()}"
+                    )
+
+    # Check that Table A in README and RESEARCH explicitly labels standard calldata pre-floor
+    for p in ["README.md", "docs/RESEARCH.md"]:
+        if os.path.exists(p):
+            with open(p, "r", encoding="utf-8") as f:
+                c = f.read()
+            if (
+                "before application of the EIP-7623 floor" not in c
+                and "before the EIP-7623 floor" not in c
+            ):
+                raise ValueError(
+                    f"Table A in {p} must explicitly state calldata cost is before application of the EIP-7623 floor"
+                )
+
+    print(
+        "[PASS] EIP-7623 Pectra activation status and Table A pre-floor labels verified."
+    )
+
+
 def main():
     print("=" * 60)
     print("RUNNING REPOSITORY CONSISTENCY AND INTEGRITY AUDIT")
@@ -152,6 +248,9 @@ def main():
     check_zero_emojis()
     check_no_obsolete_claims("README.md")
     check_no_obsolete_claims("docs/RESEARCH.md")
+    check_no_banned_ml_phrases()
+    check_openalex_consistency()
+    check_eip7623_status_and_table_a_label()
 
     print("=" * 60)
     print("ALL CONSISTENCY CHECKS PASSED.")
