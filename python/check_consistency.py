@@ -296,7 +296,8 @@ def check_benchmark_freeze_and_timing_guards():
         if not os.path.exists(rel_path):
             raise FileNotFoundError(f"Frozen benchmark file missing: {rel_path}")
         with open(rel_path, "rb") as fp:
-            actual_hash = hashlib.sha256(fp.read()).hexdigest()
+            content_bytes = fp.read().replace(b"\r\n", b"\n")
+            actual_hash = hashlib.sha256(content_bytes).hexdigest()
         if actual_hash != expected_hash:
             raise ValueError(
                 f"Benchmark file {rel_path} has modified hash {actual_hash}; expected frozen {expected_hash}"

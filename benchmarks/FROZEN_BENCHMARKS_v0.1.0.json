@@ -14,13 +14,13 @@
     "label": "11.7 ms \u00b1 0.2 ms (N=10)"
   },
   "benchmark_file_sha256": {
-    "benchmarks/cost_comparison_uncompressed.csv": "ee4d0d9e4ca1ad181efbc64271b2028badeab7e0f752d2e3e2821fa735105ed6",
-    "benchmarks/cost_comparison_compressed.csv": "abcf81d1364b6f1328253523b59caf4a26c65bea8d13580b0bd0d798222e705a",
-    "benchmarks/encoding_efficiency.csv": "6d59e9213733e49331a9d95042dd1c1ad03549d1f7d7058186b7c55c0f11999f",
-    "benchmarks/fee_sensitivity.csv": "d7360c93bc9111ff6d7dc9003518bc432d7ac5143dce28509bd64f8778cf3922",
-    "benchmarks/calldata_eip7623_sensitivity.csv": "11b8a397b85f43826c9547bfa323844157a97946a0d136efa938130d32dc98f0",
-    "benchmarks/blob_capacity_limits.csv": "79623e760bc7f87a86a2314f474c46775c707ce4e69c7d394f368a2036e345fc",
-    "benchmarks/generated_tables.md": "3dbc87b3cb36179aa9673f43496f6fa70fede8a92e3b41841c1cc6685f4b5919"
+    "benchmarks/cost_comparison_uncompressed.csv": "833ce76fb0df34b40f3c72f9f1f6fd19589e691ec3ebed8f3fa7e16c1b318224",
+    "benchmarks/cost_comparison_compressed.csv": "c7f3c36590ef2984a4c28fdba70d2341070d733a63633fdd7c48168c2fbd4171",
+    "benchmarks/encoding_efficiency.csv": "a71a6464a06c70f875f23ce3910d68c2f533f19df481422bf8087c45d6db061b",
+    "benchmarks/fee_sensitivity.csv": "61c9379a2dd4325f67dd2db05c6c3ee6e64fa2eacb64935435a2d5f829387ff4",
+    "benchmarks/calldata_eip7623_sensitivity.csv": "03f86bcbbe3b43b2e3804267ec2cef85eae89d99062b4426397270642fe445ee",
+    "benchmarks/blob_capacity_limits.csv": "c766f6f38713ea66e052ae1e91e2d9569f3dcb7974fdedbe1e4cd0e95024b52a",
+    "benchmarks/generated_tables.md": "0d06f83ae5c788d60318f60d0f18da24d4f68cc9b672c0f8dfc1eee65836f233"
   },
   "immutability_statement": "These files represent the authoritative benchmark generation accompanying v0.1.0 and must not be regenerated for this release without re-synchronising all documentation and re-creating this freeze record."
 }
