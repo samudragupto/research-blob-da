@@ -2,10 +2,29 @@
   "dataset_name": "real_academic_openalex",
   "description": "Real academic paper metadata harvested from OpenAlex API",
   "source": "OpenAlex API (https://openalex.org)",
+  "source_url": "https://api.openalex.org/works?filter=publication_year:2023,is_oa:true&sort=cited_by_count:desc",
   "source_query": "filter=publication_year:2023,is_oa:true&sort=cited_by_count:desc",
+  "retrieval_method": "Deterministic REST API pagination with field extraction and RFC 8785 canonical serialization",
   "retrieval_date": "2026-10-27",
   "license": "CC0 (Public Domain Dedication for OpenAlex Metadata)",
   "record_count": 500,
+  "source_file_bytes": 264057,
+  "source_file_sha256": "af65584227c707d3c16f7841a233070808ab1ed070f10f32e841082889a8c544",
   "raw_byte_size": 264057,
-  "sha256_checksum": "af65584227c707d3c16f7841a233070808ab1ed070f10f32e841082889a8c544"
+  "sha256_checksum": "af65584227c707d3c16f7841a233070808ab1ed070f10f32e841082889a8c544",
+  "canonical_payload_bytes": 212517,
+  "canonical_payload_sha256": "0b7175bfbd6aa0cf048d8c9e5bf1a2c51302531fcce936871bcb84d8b919c12c",
+  "retained_record_fields": [
+    "id",
+    "doi",
+    "title",
+    "publication_year",
+    "type",
+    "cited_by_count",
+    "authorships",
+    "primary_location",
+    "open_access",
+    "concepts"
+  ],
+  "payload_construction_method": "Per-record RFC 8785 JSON canonicalization with 4-byte big-endian length prefix framing"
 }

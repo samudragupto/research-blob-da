@@ -62,6 +62,20 @@ To balance experimental control against real-world external validity, the benchm
 - **Terms & License:** Creative Commons CC0 Public Domain Dedication (OpenAlex terms for metadata).
 - **Comparison Note:** Unlike synthetic metadata with uniform structure, real academic metadata exhibits heterogeneous title lengths, diverse author transliterations, varied Unicode characters, and real-world citation distributions. This introduces realistic entropy, resulting in a measured compression ratio of $4.13\text{x}$ (compared to $11.13\text{x}$ on synthetic metadata). A committed fixture is retained in `data/` so CI and offline test suites never depend on external network availability.
 
+### 2.6 Source File Bytes Versus Canonical Payload Bytes
+
+We define and distinguish five quantities across the pipeline:
+1. **Source file bytes:** The exact number of bytes of the committed source file on disk. For OpenAlex (`data/real_academic_openalex.json`), this is 264,057 bytes (257.9 KiB). For synthetic datasets generated dynamically in memory, `source_file_bytes` is defined as the byte count of the serialized generated JSON or CSV string before canonical record extraction.
+2. **Canonical payload bytes:** The exact number of bytes of the deterministic canonical byte sequence that is passed to Zstandard compression and blob encoding. The pipeline parses the input records, extracts the documented schema fields, canonicalizes them according to RFC 8785 (JSON Canonicalization Scheme), and frames them with delimiter bytes. For OpenAlex, this canonical payload is 212,517 bytes (207.5 KiB).
+3. **Compressed bytes:** The exact number of bytes resulting from Zstandard level 3 compression of the canonical payload. For OpenAlex, this is 51,479 bytes (50.3 KiB).
+4. **Encoded bytes:** The exact number of bytes after 31-byte field element packing (`FE31`), including field element framing and the 31-byte FE0 header.
+5. **Blobs used:** The number of EIP-4844 blobs required to store the encoded payload ($\lceil \text{Compressed Bytes} / 126,945 \rceil$). For OpenAlex, this is 1 blob.
+
+**Compression Ratio Definition:**
+The compression ratio reported in Table B and throughout this repository is strictly defined as:
+$$\text{Compression Ratio} = \frac{\text{Canonical Payload Bytes}}{\text{Compressed Bytes}}$$
+For OpenAlex, this is $212,517 / 51,479 = 4.13\text{x}$. Compression ratio, blob count, and calldata cost are calculated from the canonical payload bytes that are actually compressed and posted, rather than the unparsed source file with formatting whitespace and wrapper fields.
+
 ---
 
 ## 3. Gas Cost and Economic Valuation Models
@@ -109,7 +123,7 @@ $$K = \left\lceil \frac{S}{126,945} \right\rceil$$
    *Multi-Block Impracticality:* At the standard 30,000,000 Ethereum block gas limit, publishing a 1.0 MiB payload requires $\lceil 724,193,800 / 30,000,000 \rceil = \mathbf{25\text{ full blocks}}$, proving that SSTORE is purely a theoretical cost reference point, not a practical data-posting mechanism.
 
 4. **Post-Pectra Calldata Floor Sensitivity (Official EIP-7623):**
-   Under official EIP-7623 specifications:
+   EIP-7623, activated with Pectra, defines an execution-layer calldata floor that raises the effective gas cost of data-heavy transactions whose execution gas is small relative to their calldata size ([official specification](https://eips.ethereum.org/EIPS/eip-7623)). Under official EIP-7623 specifications:
    $$\text{Tokens} = (\text{Zero Bytes} \times 1) + (\text{Non-Zero Bytes} \times 4)$$
    $$\text{Standard Calldata Gas} = 4 \times \text{Tokens}$$
    $$\text{Floor Gas} = 21{,}000 + 10 \times \text{Tokens}$$

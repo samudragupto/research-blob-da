@@ -218,41 +218,65 @@ def run_cost_comparison_uncompressed(output_dir: str = "benchmarks") -> pd.DataF
 # -----------------------------------------------------------------------------
 # Experiment 1B: Table B - Measured Compressed Dataset Results
 # -----------------------------------------------------------------------------
+# Shared Benchmark Measurement Cache (Ensures Single Source of Truth for Timing)
+# -----------------------------------------------------------------------------
+
+_SHARED_BENCHMARK_CACHE: list[dict[str, Any]] | None = None
 
 
-def run_cost_comparison_compressed(output_dir: str = "benchmarks") -> pd.DataFrame:
-    """Evaluates measured posting costs across real and synthetic research datasets.
+def get_or_benchmark_datasets(trials: int = 10) -> list[dict[str, Any]]:
+    """Runs encoding and compression benchmarks once across all datasets.
 
-    Reports: dataset name, category, record count, raw bytes, compressed bytes,
-    compression ratio, encoded bytes, encoding overhead percentage, blobs used,
-    cost blob USD, cost calldata USD, savings ratio, and timing statistics.
+    Ensures that encoding_time_mean_ms, encoding_time_std_ms, and encoding_runs
+    originate from a single measurement array across all generated CSVs and tables.
     """
+    global _SHARED_BENCHMARK_CACHE
+    if _SHARED_BENCHMARK_CACHE is not None:
+        return _SHARED_BENCHMARK_CACHE
+
     real_openalex = load_or_fetch_real_dataset()
 
-    datasets = {
-        "ML Training Trace (JSON)": (
+    openalex_source_bytes = 264057
+    if os.path.exists("data/real_academic_openalex.json"):
+        with open("data/real_academic_openalex.json", "rb") as fp:
+            openalex_source_bytes = len(fp.read().replace(b"\r\n", b"\n"))
+
+    datasets = [
+        (
+            "ML Training Trace (JSON)",
             "Synthetic Dataset",
             generate_ml_training_trace(10000),
+            None,
         ),
-        "Climate Station Data (CSV/Tabular)": (
+        (
+            "Climate Station Data (CSV/Tabular)",
             "Synthetic Dataset",
             generate_climate_timeseries(20000),
+            None,
         ),
-        "Genomics Variant Benchmark": (
+        (
+            "Genomics Variant Benchmark",
             "Synthetic Dataset",
             generate_genomics_benchmark(8000),
+            None,
         ),
-        "Academic Paper Metadata (JSON)": (
+        (
+            "Academic Paper Metadata (JSON)",
             "Synthetic Dataset",
             generate_academic_paper_metadata(5000),
+            None,
         ),
-        "OpenAlex Academic Works (JSON)": ("Real Dataset", real_openalex),
-    }
+        (
+            "OpenAlex Academic Works (JSON)",
+            "Real Dataset",
+            real_openalex,
+            openalex_source_bytes,
+        ),
+    ]
 
-    trials = 5
-    rows: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
 
-    for name, (cat, data) in datasets.items():
+    for name, cat, data, src_bytes in datasets:
         timing_runs = []
         encoded = None
 
@@ -265,57 +289,97 @@ def run_cost_comparison_compressed(output_dir: str = "benchmarks") -> pd.DataFra
         mean_time_ms = float(np.mean(timing_runs))
         std_time_ms = float(np.std(timing_runs))
 
-        raw_bytes = encoded.raw_size
+        canonical_bytes = encoded.raw_size
+        actual_src_bytes = src_bytes if src_bytes is not None else canonical_bytes
         comp_bytes = len(encoded.compressed_stream)
-        ratio = raw_bytes / comp_bytes if comp_bytes > 0 else 1.0
+        ratio = canonical_bytes / comp_bytes if comp_bytes > 0 else 1.0
 
-        # Blobs needed
         blobs_used = encoded.blob_count
         total_blob_bytes = blobs_used * BYTES_PER_BLOB
 
-        # Encoding overhead (FE zero bytes + headers + padding waste)
         encoding_overhead_pct = (
             ((total_blob_bytes - comp_bytes) / total_blob_bytes) * 100.0
             if total_blob_bytes > 0
             else 0.0
         )
 
-        # Monetary costs
         blob_gas = blobs_used * BYTES_PER_BLOB
         blob_fee_eth = blob_gas * (BLOB_FEE_GWEI * 1e-9)
         blob_exec_gas = 168_000 + (blobs_used - 1) * 35_000
         blob_exec_fee_eth = blob_exec_gas * (BASE_FEE_GWEI * 1e-9)
         cost_blob_usd = (blob_fee_eth + blob_exec_fee_eth) * ETH_PRICE_USD
 
-        # Calldata cost for the compressed payload
         calldata_gas = 21_000 + (comp_bytes * 16)
         calldata_fee_eth = calldata_gas * (BASE_FEE_GWEI * 1e-9)
         cost_calldata_usd = calldata_fee_eth * ETH_PRICE_USD
 
-        savings_ratio = cost_calldata_usd / cost_blob_usd if cost_blob_usd > 0 else 0.0
+        savings_factor = cost_calldata_usd / cost_blob_usd if cost_blob_usd > 0 else 0.0
 
-        rows.append(
+        total_blob_capacity_kb = (encoded.blob_count * USABLE_BYTES_FE31) / 1024.0
+        utilized_kb = (encoded.encoded_size + encoded.blob_count * HEADER_SIZE) / 1024.0
+        packing_waste_kb = total_blob_capacity_kb - utilized_kb
+        packing_efficiency_pct = (utilized_kb / total_blob_capacity_kb) * 100.0
+
+        throughput = (
+            (canonical_bytes / (1024 * 1024)) / (mean_time_ms / 1000.0)
+            if mean_time_ms > 0
+            else 0.0
+        )
+
+        results.append(
             {
                 "dataset_name": name,
-                "dataset_category": cat,
-                "record_count": encoded.record_count,
-                "raw_bytes": raw_bytes,
-                "raw_kib": round(raw_bytes / 1024.0, 2),
+                "dataset_type": cat,
+                "records": encoded.record_count,
+                "source_file_bytes": actual_src_bytes,
+                "canonical_payload_bytes": canonical_bytes,
                 "compressed_bytes": comp_bytes,
-                "compressed_kib": round(comp_bytes / 1024.0, 2),
                 "compression_ratio": round(ratio, 2),
                 "encoded_bytes": total_blob_bytes,
-                "encoding_overhead_pct": round(encoding_overhead_pct, 1),
+                "blobs_used": blobs_used,
+                "blob_cost_usd": round(cost_blob_usd, 4),
+                "calldata_cost_usd": round(cost_calldata_usd, 2),
+                "savings_factor": round(savings_factor, 1),
+                "encoding_time_mean_ms": round(mean_time_ms, 2),
+                "encoding_time_std_ms": round(std_time_ms, 2),
+                "encoding_runs": trials,
+                # Aliases & additional metrics
+                "dataset_category": cat,
+                "record_count": encoded.record_count,
+                "raw_bytes": canonical_bytes,
+                "raw_kib": round(canonical_bytes / 1024.0, 2),
+                "compressed_kib": round(comp_bytes / 1024.0, 2),
                 "blob_count": blobs_used,
                 "cost_blob_usd": round(cost_blob_usd, 4),
                 "cost_calldata_usd": round(cost_calldata_usd, 2),
-                "savings_ratio": round(savings_ratio, 1),
+                "savings_ratio": round(savings_factor, 1),
                 "encode_time_ms_mean": round(mean_time_ms, 2),
                 "encode_time_ms_std": round(std_time_ms, 2),
+                "encoding_overhead_pct": round(encoding_overhead_pct, 1),
+                "packing_efficiency_pct": round(packing_efficiency_pct, 1),
+                "packing_waste_kib": round(packing_waste_kb, 2),
+                "throughput_mibs": round(throughput, 2),
             }
         )
 
-    df = pd.DataFrame(rows)
+    _SHARED_BENCHMARK_CACHE = results
+    return results
+
+
+# -----------------------------------------------------------------------------
+# Experiment 1B: Table B - Measured Compressed Dataset Results
+# -----------------------------------------------------------------------------
+
+
+def run_cost_comparison_compressed(output_dir: str = "benchmarks") -> pd.DataFrame:
+    """Evaluates measured posting costs across real and synthetic research datasets.
+
+    Reports: dataset_name, dataset_type, records, source_file_bytes, canonical_payload_bytes,
+    compressed_bytes, compression_ratio, encoded_bytes, blobs_used, blob_cost_usd,
+    calldata_cost_usd, savings_factor, encoding_time_mean_ms, encoding_time_std_ms, encoding_runs.
+    """
+    benchmarks = get_or_benchmark_datasets(trials=10)
+    df = pd.DataFrame(benchmarks)
     csv_path = os.path.join(output_dir, "cost_comparison_compressed.csv")
     df.to_csv(csv_path, index=False)
     print(f"[Experiment 1B] Table B (Measured Compressed) saved to {csv_path}")
@@ -331,59 +395,26 @@ def run_encoding_efficiency(output_dir: str = "benchmarks") -> pd.DataFrame:
     """Measures compression ratio, payload packing efficiency, waste, and encoding throughput
 
     across tabular CSVs, JSON traces, genomics records, and real OpenAlex works.
+    Uses the exact same centralized timing measurements as Table B.
     """
-    real_openalex = load_or_fetch_real_dataset()
-
-    datasets = {
-        "ML Training Trace (JSON)": generate_ml_training_trace(10000),
-        "Climate Station Data (CSV/Tabular)": generate_climate_timeseries(20000),
-        "Genomics Variant Benchmark": generate_genomics_benchmark(8000),
-        "Academic Paper Metadata (JSON)": generate_academic_paper_metadata(5000),
-        "OpenAlex Academic Works (JSON)": real_openalex,
-    }
-
-    trials = 5
+    benchmarks = get_or_benchmark_datasets(trials=10)
     rows: list[dict[str, Any]] = []
 
-    for name, data in datasets.items():
-        timing_runs = []
-        encoded = None
-
-        for _ in range(trials):
-            t0 = time.perf_counter()
-            encoded = encode_dataset(data, codec=1, packing=0, zstd_level=3)
-            timing_runs.append((time.perf_counter() - t0) * 1000.0)
-
-        assert encoded is not None
-        t_enc = float(np.mean(timing_runs))
-
-        raw_kb = encoded.raw_size / 1024.0
-        enc_kb = encoded.encoded_size / 1024.0
-        compression_ratio = (
-            encoded.raw_size / encoded.encoded_size if encoded.encoded_size > 0 else 1.0
-        )
-
-        total_blob_capacity_kb = (encoded.blob_count * USABLE_BYTES_FE31) / 1024.0
-        utilized_kb = (encoded.encoded_size + encoded.blob_count * HEADER_SIZE) / 1024.0
-        packing_waste_kb = total_blob_capacity_kb - utilized_kb
-        packing_efficiency_pct = (utilized_kb / total_blob_capacity_kb) * 100.0
-
-        throughput = (
-            (encoded.raw_size / (1024 * 1024)) / (t_enc / 1000.0) if t_enc > 0 else 0.0
-        )
-
+    for b in benchmarks:
         rows.append(
             {
-                "dataset_type": name,
-                "record_count": encoded.record_count,
-                "raw_size_kib": round(raw_kb, 2),
-                "compressed_size_kib": round(enc_kb, 2),
-                "compression_ratio": round(compression_ratio, 2),
-                "blob_count": encoded.blob_count,
-                "packing_efficiency_pct": round(packing_efficiency_pct, 1),
-                "packing_waste_kib": round(packing_waste_kb, 2),
-                "encoding_time_ms": round(t_enc, 2),
-                "throughput_mibs": round(throughput, 2),
+                "dataset_type": b["dataset_name"],
+                "record_count": b["records"],
+                "raw_size_kib": b["raw_kib"],
+                "compressed_size_kib": b["compressed_kib"],
+                "compression_ratio": b["compression_ratio"],
+                "blob_count": b["blobs_used"],
+                "packing_efficiency_pct": b["packing_efficiency_pct"],
+                "packing_waste_kib": b["packing_waste_kib"],
+                "encoding_time_ms": b["encoding_time_mean_ms"],
+                "encoding_time_std_ms": b["encoding_time_std_ms"],
+                "encoding_runs": b["encoding_runs"],
+                "throughput_mibs": b["throughput_mibs"],
             }
         )
 
@@ -775,6 +806,12 @@ def generate_markdown_tables(output_dir: str = "benchmarks") -> str:
     md.append("## Table A: Theoretical Uncompressed Cost Baseline\n")
     md.append(
         "> [!NOTE]\n"
+        "> **Table A: Theoretical Uncompressed Cost Baseline.** Calldata cost is the standard calldata "
+        "calculation (16 gas per non-zero byte and 4 gas per zero byte plus intrinsic and stated execution gas), "
+        "before application of the EIP-7623 floor. This makes the reported blob savings factor conservative for "
+        "data-heavy transactions under current post-Pectra rules, because the EIP-7623 floor can raise the effective "
+        "calldata cost. See the Post-Pectra Calldata Floor Sensitivity subsection for the floor-adjusted analysis.\n"
+        ">\n"
         "> **Assumptions:** Uncompressed raw data; usable payload per blob is strictly 126,945 bytes "
         "(4096 field elements * 31 bytes minus 31-byte FE0 header). Execution base fee: 15 gwei; "
         "blob base fee: 2 gwei; ETH price: $3,000 USD.\n"
@@ -785,7 +822,7 @@ def generate_markdown_tables(output_dir: str = "benchmarks") -> str:
     )
 
     md.append(
-        "| Dataset Size | Raw Bytes | Blobs Needed | Blob Cost (USD) | Standard Calldata (USD) | Blob Savings vs Calldata | Theoretical SSTORE (USD)* | Min Blocks (SSTORE at 30M Gas) |\n"
+        "| Dataset Size | Raw Bytes | Blobs Needed | Blob Cost (USD) | Standard Calldata Cost (USD, Pre-Floor) | Blob Savings vs Calldata | Theoretical SSTORE (USD)* | Min Blocks (SSTORE at 30M Gas) |\n"
         "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n"
     )
     for _, r in df_uncomp.iterrows():
@@ -808,23 +845,33 @@ def generate_markdown_tables(output_dir: str = "benchmarks") -> str:
     md.append(
         "> [!NOTE]\n"
         "> **Assumptions:** Canonical record serialization, Zstandard level 3 compression, "
-        "and 31-byte field element packing (FE31). Blob counts and monetary costs reflect "
-        "the actual compressed payloads.\n\n"
+        "and 31-byte field element packing (FE31). Blob counts, monetary costs, and compression ratios "
+        "reflect canonical payload bytes actually compressed and posted. Calldata costs represent "
+        "standard calldata before application of the EIP-7623 floor.\n\n"
     )
 
     md.append(
-        "| Dataset Name | Type | Records | Raw Size | Compressed Size | Ratio | Blobs | Blob Cost (USD) | Calldata Cost (USD) | Savings | Encoding Time (Mean ± Std) |\n"
+        "| Dataset Name | Type | Records | Canonical Payload Size | Compressed Size | Ratio | Blobs | Blob Cost (USD) | Standard Calldata (USD, Pre-Floor) | Savings | Encoding Time (Mean ± Std, N=10) |\n"
         "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n"
     )
     for _, r in df_comp.iterrows():
         md.append(
-            f"| {r['dataset_name']} | {r['dataset_category']} | {int(r['record_count']):,} | "
-            f"{r['raw_kib']:.1f} KiB | {r['compressed_kib']:.1f} KiB | "
-            f"{r['compression_ratio']:.2f}x | **{int(r['blob_count'])}** | "
-            f"${r['cost_blob_usd']:.4f} | ${r['cost_calldata_usd']:.2f} | "
-            f"**{r['savings_ratio']:.1f}x** | "
-            f"{r['encode_time_ms_mean']:.1f} ms ± {r['encode_time_ms_std']:.1f} ms |\n"
+            f"| {r['dataset_name']} | {r['dataset_type']} | {int(r['records']):,} | "
+            f"{r['canonical_payload_bytes'] / 1024.0:.1f} KiB | {r['compressed_bytes'] / 1024.0:.1f} KiB | "
+            f"{r['compression_ratio']:.2f}x | **{int(r['blobs_used'])}** | "
+            f"${r['blob_cost_usd']:.4f} | ${r['calldata_cost_usd']:.2f} | "
+            f"**{r['savings_factor']:.1f}x** | "
+            f"{r['encoding_time_mean_ms']:.1f} ms ± {r['encoding_time_std_ms']:.1f} ms |\n"
         )
+
+    md.append(
+        "\n> **Note on the OpenAlex row:** The committed source file is 264,057 bytes (257.9 KiB). "
+        "The pipeline parses this file, extracts the documented record fields, and deterministically "
+        "canonicalizes the records before compression. The canonical payload that is actually compressed "
+        "and encoded is therefore smaller than the source file (212,517 bytes / 207.5 KiB). "
+        "Compression ratio, blob count, and cost for this row are calculated from the canonical payload bytes, "
+        "not from the source file bytes. The source file SHA-256 in the manifest verifies the committed source file.\n"
+    )
 
     md.append("\n### Explanatory Note on Table A vs Table B Blob Counts\n")
     md.append(

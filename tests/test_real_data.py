@@ -2,9 +2,13 @@
 Unit tests for the real academic dataset (OpenAlex) pipeline and manifest verification.
 """
 
+import hashlib
 import json
 import os
 
+import pandas as pd
+
+from python.canonical import serialize_record_stream
 from python.decoder import decode_dataset
 from python.encoder import encode_dataset
 from python.fetch_real_data import extract_work_record, verify_manifest
@@ -87,3 +91,57 @@ def test_real_data_pipeline_end_to_end():
     decoded_first = json.loads(decoded.records[0].decode("utf-8"))
     assert decoded_first["id"] == records[0]["id"]
     assert decoded_first["title"] == records[0]["title"]
+
+
+def test_real_data_source_vs_canonical_reconciliation():
+    """Validates the distinction between source file bytes and canonical payload bytes,
+
+    and ensures generated benchmark CSV rows match committed files exactly.
+    """
+    json_path = "data/real_academic_openalex.json"
+    manifest_path = "data/real_academic_openalex_manifest.json"
+    csv_path = "benchmarks/cost_comparison_compressed.csv"
+
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        manifest = json.load(f)
+
+    with open(json_path, "rb") as f:
+        raw_content = f.read().replace(b"\r\n", b"\n")
+
+    # 1. Manifest source_file_bytes equals actual byte size of committed fixture (with LF)
+    assert manifest["source_file_bytes"] == len(raw_content) == 264057
+
+    # 2. Manifest source_file_sha256 matches committed fixture
+    computed_src_sha256 = hashlib.sha256(raw_content).hexdigest()
+    assert (
+        manifest["source_file_sha256"]
+        == computed_src_sha256
+        == "af65584227c707d3c16f7841a233070808ab1ed070f10f32e841082889a8c544"
+    )
+
+    # 3. Canonical payload byte count produced by pipeline equals CSV value
+    records = json.loads(raw_content.decode("utf-8"))
+    canonical_stream = serialize_record_stream(records)
+    canonical_bytes = len(canonical_stream)
+    assert canonical_bytes == 212517
+    assert manifest["canonical_payload_bytes"] == canonical_bytes
+    assert (
+        manifest["canonical_payload_sha256"]
+        == hashlib.sha256(canonical_stream).hexdigest()
+    )
+
+    df = pd.read_csv(csv_path)
+    openalex_row = df[df["dataset_name"].str.contains("OpenAlex")].iloc[0]
+    assert int(openalex_row["source_file_bytes"]) == 264057
+    assert int(openalex_row["canonical_payload_bytes"]) == 212517
+
+    # 4. Compression ratio definition equals canonical_payload_bytes / compressed_bytes
+    expected_ratio = round(canonical_bytes / int(openalex_row["compressed_bytes"]), 2)
+    assert float(openalex_row["compression_ratio"]) == expected_ratio == 4.13
+
+    # 5. OpenAlex encoding mean and std in generated tables match CSV source
+    with open("benchmarks/generated_tables.md", "r", encoding="utf-8") as f:
+        tables_md = f.read()
+
+    expected_time_str = f"{openalex_row['encoding_time_mean_ms']:.1f} ms ± {openalex_row['encoding_time_std_ms']:.1f} ms"
+    assert expected_time_str in tables_md

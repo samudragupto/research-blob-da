@@ -2,11 +2,13 @@
 All figures below are generated directly from executed code and committed datasets.
 ## Table A: Theoretical Uncompressed Cost Baseline
 > [!NOTE]
+> **Table A: Theoretical Uncompressed Cost Baseline.** Calldata cost is the standard calldata calculation (16 gas per non-zero byte and 4 gas per zero byte plus intrinsic and stated execution gas), before application of the EIP-7623 floor. This makes the reported blob savings factor conservative for data-heavy transactions under current post-Pectra rules, because the EIP-7623 floor can raise the effective calldata cost. See the Post-Pectra Calldata Floor Sensitivity subsection for the floor-adjusted analysis.
+>
 > **Assumptions:** Uncompressed raw data; usable payload per blob is strictly 126,945 bytes (4096 field elements * 31 bytes minus 31-byte FE0 header). Execution base fee: 15 gwei; blob base fee: 2 gwei; ETH price: $3,000 USD.
 >
 > **SSTORE Caution:** SSTORE figures represent a theoretical mathematical extrapolation (22,100 gas per 32-byte slot) and are **not executable as a single transaction**. At the 30M block gas limit, publishing 1.0 MiB via SSTORE would require at least 25 full Ethereum blocks.
 
-| Dataset Size | Raw Bytes | Blobs Needed | Blob Cost (USD) | Standard Calldata (USD) | Blob Savings vs Calldata | Theoretical SSTORE (USD)* | Min Blocks (SSTORE at 30M Gas) |
+| Dataset Size | Raw Bytes | Blobs Needed | Blob Cost (USD) | Standard Calldata Cost (USD, Pre-Floor) | Blob Savings vs Calldata | Theoretical SSTORE (USD)* | Min Blocks (SSTORE at 30M Gas) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 0.125 MiB | 131,072 | 2 | $10.7079 | $95.32 | **8.9x** | $4,074.42 | 4 blocks |
 | 1.0 MiB | 1,048,576 | 9 | $27.2379 | $755.92 | **27.8x** | $32,588.72 | 25 blocks |
@@ -17,15 +19,17 @@ All figures below are generated directly from executed code and committed datase
 
 ## Table B: Measured Compressed Dataset Results
 > [!NOTE]
-> **Assumptions:** Canonical record serialization, Zstandard level 3 compression, and 31-byte field element packing (FE31). Blob counts and monetary costs reflect the actual compressed payloads.
+> **Assumptions:** Canonical record serialization, Zstandard level 3 compression, and 31-byte field element packing (FE31). Blob counts, monetary costs, and compression ratios reflect canonical payload bytes actually compressed and posted. Calldata costs represent standard calldata before application of the EIP-7623 floor.
 
-| Dataset Name | Type | Records | Raw Size | Compressed Size | Ratio | Blobs | Blob Cost (USD) | Calldata Cost (USD) | Savings | Encoding Time (Mean ± Std) |
+| Dataset Name | Type | Records | Canonical Payload Size | Compressed Size | Ratio | Blobs | Blob Cost (USD) | Standard Calldata (USD, Pre-Floor) | Savings | Encoding Time (Mean ± Std, N=10) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| ML Training Trace (JSON) | Synthetic Dataset | 10,000 | 1056.1 KiB | 174.9 KiB | 6.04x | **2** | $10.7079 | $129.91 | **12.1x** | 225.5 ms ± 6.9 ms |
-| Climate Station Data (CSV/Tabular) | Synthetic Dataset | 20,000 | 3051.4 KiB | 403.1 KiB | 7.57x | **4** | $15.4307 | $298.14 | **19.3x** | 440.4 ms ± 13.9 ms |
-| Genomics Variant Benchmark | Synthetic Dataset | 8,000 | 946.0 KiB | 163.0 KiB | 5.80x | **2** | $10.7079 | $121.14 | **11.3x** | 143.7 ms ± 3.1 ms |
-| Academic Paper Metadata (JSON) | Synthetic Dataset | 5,000 | 825.5 KiB | 74.1 KiB | 11.13x | **1** | $8.3464 | $55.61 | **6.7x** | 103.8 ms ± 1.6 ms |
-| OpenAlex Academic Works (JSON) | Real Dataset | 500 | 207.5 KiB | 50.3 KiB | 4.13x | **1** | $8.3464 | $38.01 | **4.6x** | 11.5 ms ± 0.1 ms |
+| ML Training Trace (JSON) | Synthetic Dataset | 10,000 | 1056.1 KiB | 174.9 KiB | 6.04x | **2** | $10.7079 | $129.91 | **12.1x** | 210.6 ms ± 4.7 ms |
+| Climate Station Data (CSV/Tabular) | Synthetic Dataset | 20,000 | 3051.4 KiB | 403.1 KiB | 7.57x | **4** | $15.4307 | $298.14 | **19.3x** | 423.8 ms ± 5.5 ms |
+| Genomics Variant Benchmark | Synthetic Dataset | 8,000 | 946.0 KiB | 163.0 KiB | 5.80x | **2** | $10.7079 | $121.14 | **11.3x** | 143.6 ms ± 2.0 ms |
+| Academic Paper Metadata (JSON) | Synthetic Dataset | 5,000 | 825.4 KiB | 74.1 KiB | 11.13x | **1** | $8.3464 | $55.61 | **6.7x** | 100.9 ms ± 1.1 ms |
+| OpenAlex Academic Works (JSON) | Real Dataset | 500 | 207.5 KiB | 50.3 KiB | 4.13x | **1** | $8.3464 | $38.01 | **4.6x** | 11.3 ms ± 0.1 ms |
+
+> **Note on the OpenAlex row:** The committed source file is 264,057 bytes (257.9 KiB). The pipeline parses this file, extracts the documented record fields, and deterministically canonicalizes the records before compression. The canonical payload that is actually compressed and encoded is therefore smaller than the source file (212,517 bytes / 207.5 KiB). Compression ratio, blob count, and cost for this row are calculated from the canonical payload bytes, not from the source file bytes. The source file SHA-256 in the manifest verifies the committed source file.
 
 ### Explanatory Note on Table A vs Table B Blob Counts
 Reviewers comparing Table A and Table B will note that a **1.0 MiB theoretical uncompressed dataset requires 9 blobs**, whereas the **ML Training Trace (1,056 KiB raw) requires only 2 blobs**.

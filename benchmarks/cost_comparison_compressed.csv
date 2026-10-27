@@ -1,6 +1,6 @@
-dataset_name,dataset_category,record_count,raw_bytes,raw_kib,compressed_bytes,compressed_kib,compression_ratio,encoded_bytes,encoding_overhead_pct,blob_count,cost_blob_usd,cost_calldata_usd,savings_ratio,encode_time_ms_mean,encode_time_ms_std
-ML Training Trace (JSON),Synthetic Dataset,10000,1081484,1056.14,179112,174.91,6.04,262144,31.7,2,10.7079,129.91,12.1,225.47,6.86
-Climate Station Data (CSV/Tabular),Synthetic Dataset,20000,3124638,3051.4,412767,403.09,7.57,524288,21.3,4,15.4307,298.14,19.3,440.39,13.87
-Genomics Variant Benchmark,Synthetic Dataset,8000,968750,946.04,166937,163.02,5.8,262144,36.3,2,10.7079,121.14,11.3,143.68,3.12
-Academic Paper Metadata (JSON),Synthetic Dataset,5000,845258,825.45,75922,74.14,11.13,131072,42.1,1,8.3464,55.61,6.7,103.79,1.59
-OpenAlex Academic Works (JSON),Real Dataset,500,212517,207.54,51479,50.27,4.13,131072,60.7,1,8.3464,38.01,4.6,11.51,0.08
+dataset_name,dataset_type,records,source_file_bytes,canonical_payload_bytes,compressed_bytes,compression_ratio,encoded_bytes,blobs_used,blob_cost_usd,calldata_cost_usd,savings_factor,encoding_time_mean_ms,encoding_time_std_ms,encoding_runs,dataset_category,record_count,raw_bytes,raw_kib,compressed_kib,blob_count,cost_blob_usd,cost_calldata_usd,savings_ratio,encode_time_ms_mean,encode_time_ms_std,encoding_overhead_pct,packing_efficiency_pct,packing_waste_kib,throughput_mibs
+ML Training Trace (JSON),Synthetic Dataset,10000,1081484,1081484,179112,6.04,262144,2,10.7079,129.91,12.1,210.57,4.68,10,Synthetic Dataset,10000,1081484,1056.14,174.91,2,10.7079,129.91,12.1,210.57,4.68,31.7,70.6,73.03,4.9
+Climate Station Data (CSV/Tabular),Synthetic Dataset,20000,3124638,3124638,412767,7.57,524288,4,15.4307,298.14,19.3,423.83,5.51,10,Synthetic Dataset,20000,3124638,3051.4,403.09,4,15.4307,298.14,19.3,423.83,5.51,21.3,81.3,92.79,7.03
+Genomics Variant Benchmark,Synthetic Dataset,8000,968750,968750,166937,5.8,262144,2,10.7079,121.14,11.3,143.58,1.97,10,Synthetic Dataset,8000,968750,946.04,163.02,2,10.7079,121.14,11.3,143.58,1.97,36.3,65.8,84.92,6.43
+Academic Paper Metadata (JSON),Synthetic Dataset,5000,845258,845258,75922,11.13,131072,1,8.3464,55.61,6.7,100.88,1.06,10,Synthetic Dataset,5000,845258,825.45,74.14,1,8.3464,55.61,6.7,100.88,1.06,42.1,59.8,49.83,7.99
+OpenAlex Academic Works (JSON),Real Dataset,500,264057,212517,51479,4.13,131072,1,8.3464,38.01,4.6,11.3,0.09,10,Real Dataset,500,212517,207.54,50.27,1,8.3464,38.01,4.6,11.3,0.09,60.7,40.6,73.7,17.93

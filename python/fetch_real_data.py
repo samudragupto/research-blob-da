@@ -19,6 +19,8 @@ import urllib.error
 import urllib.request
 from typing import Any
 
+from python.canonical import serialize_record_stream
+
 OPENALEX_API_URL = "https://api.openalex.org/works"
 DEFAULT_TARGET_COUNT = 500
 PER_PAGE = 100
@@ -131,16 +133,39 @@ def save_dataset_and_manifest(
 
     sha256_hash = hashlib.sha256(json_bytes).hexdigest()
 
+    canonical_stream = serialize_record_stream(works)
+    canonical_bytes = len(canonical_stream)
+    canonical_sha256 = hashlib.sha256(canonical_stream).hexdigest()
+
     manifest = {
         "dataset_name": "real_academic_openalex",
         "description": "Real academic paper metadata harvested from OpenAlex API",
         "source": "OpenAlex API (https://openalex.org)",
+        "source_url": "https://api.openalex.org/works?filter=publication_year:2023,is_oa:true&sort=cited_by_count:desc",
         "source_query": "filter=publication_year:2023,is_oa:true&sort=cited_by_count:desc",
+        "retrieval_method": "Deterministic REST API pagination with field extraction and RFC 8785 canonical serialization",
         "retrieval_date": "2026-10-27",
         "license": "CC0 (Public Domain Dedication for OpenAlex Metadata)",
         "record_count": len(works),
+        "source_file_bytes": len(json_bytes),
+        "source_file_sha256": sha256_hash,
         "raw_byte_size": len(json_bytes),
         "sha256_checksum": sha256_hash,
+        "canonical_payload_bytes": canonical_bytes,
+        "canonical_payload_sha256": canonical_sha256,
+        "retained_record_fields": [
+            "id",
+            "doi",
+            "title",
+            "publication_year",
+            "type",
+            "cited_by_count",
+            "authorships",
+            "primary_location",
+            "open_access",
+            "concepts",
+        ],
+        "payload_construction_method": "Per-record RFC 8785 JSON canonicalization with 4-byte big-endian length prefix framing",
     }
 
     with open(output_manifest_path, "w", encoding="utf-8") as f:
@@ -166,7 +191,10 @@ def verify_manifest(
     # Normalize line endings to LF to ensure deterministic checksum verification across Windows/Linux checkouts
     content_lf = content.replace(b"\r\n", b"\n")
     computed_sha256 = hashlib.sha256(content_lf).hexdigest()
-    if computed_sha256 != manifest.get("sha256_checksum"):
+    expected_sha256 = manifest.get("source_file_sha256") or manifest.get(
+        "sha256_checksum"
+    )
+    if computed_sha256 != expected_sha256:
         return False
 
     records = json.loads(content_lf.decode("utf-8"))
