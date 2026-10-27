@@ -108,6 +108,42 @@ def test_eip7623_realistic_json_payload():
     assert res["floor_applied"] is True
 
 
+def test_eip7623_mixed_payload():
+    """Tests EIP-7623 on a 50/50 mixture of zero and non-zero bytes."""
+    # 500 zero bytes + 500 non-zero bytes (1000 bytes total)
+    payload = bytes(500) + bytes([0xAA] * 500)
+    res = calculate_eip7623_calldata_gas(payload, execution_gas_used=0)
+
+    assert res["zero_bytes"] == 500
+    assert res["nonzero_bytes"] == 500
+    # tokens = (500 * 1) + (500 * 4) = 2500 tokens
+    assert res["tokens"] == 2500
+    # standard calldata gas = 4 * 2500 = 10,000
+    assert res["standard_calldata_gas"] == 10000
+    # floor calldata gas = 10 * 2500 = 25,000
+    assert res["floor_calldata_gas"] == 25000
+    # effective gas per byte = 25,000 / 1,000 = 25.0
+    assert res["effective_gas_per_byte"] == 25.0
+    assert res["floor_applied"] is True
+
+
+def test_eip7623_low_execution_pure_da_floor_applies():
+    """Confirms floor determines gas used when 6 * tokens > execution_gas_used."""
+    payload = bytes([0xFF] * 1000)  # 1000 non-zero bytes -> tokens = 4000
+    # 6 * tokens = 24,000. If execution_gas = 10,000 (< 24,000), floor must apply
+    res = calculate_eip7623_calldata_gas(payload, execution_gas_used=10000)
+
+    # standard_calldata = 16,000. standard_calldata + execution_gas = 26,000
+    # floor = 10 * tokens = 40,000
+    # tx.gasUsed = 21,000 + max(26,000, 40,000) = 61,000
+    assert res["standard_calldata_gas"] == 16000
+    assert res["floor_calldata_gas"] == 40000
+    assert res["standard_tx_gas"] == 47000  # 21,000 + 26,000
+    assert res["floor_tx_gas"] == 61000
+    assert res["effective_tx_gas"] == 61000
+    assert res["floor_applied"] is True
+
+
 def test_sstore_extrapolation_bounds():
     """Validates theoretical SSTORE extrapolation calculations and block count barriers."""
     # 1.0 MiB payload

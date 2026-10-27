@@ -17,8 +17,8 @@
 This repository contains the complete open-source prototype, Foundry contracts, formal cost models, and empirical benchmark suite for the research paper *research-blob-da*.
 
 - **Headline Findings (Defensible & Verified):**
-  1. **27.8x Theoretical Cost Reduction vs. Standard Calldata:** Under documented economic assumptions (15 gwei execution base fee, 2 gwei blob base fee, $3,000 USD/ETH), posting a 1.0 MiB theoretical uncompressed dataset costs **$27.24** on EIP-4844 blobs versus **$755.92** on standard calldata (16 gas/byte).
-  2. **12.1x Measured Compressed Posting Cost on Real ML Telemetry:** A 1,056 KiB neural network training trace compresses 6.04x via Zstandard level 3 to 174.9 KiB, requiring only **2 blobs** ($10.71) compared to $129.91 in calldata.
+  1. **27.8x Theoretical Cost Reduction vs. Standard Calldata:** Under documented economic assumptions (15 gwei execution base fee, 2 gwei blob base fee, $3,000 USD/ETH), posting a 1.0 MiB theoretical uncompressed dataset costs **$27.24** on EIP-4844 blobs versus **$755.92** on standard calldata (16 gas/byte) before application of the EIP-7623 floor.
+  2. **12.1x Measured Compressed Cost on an ML Training Trace:** A synthetic ML training trace of 1,056.1 KiB compresses 6.04x to 174.9 KiB and requires 2 blobs, giving a measured 12.1x cost reduction against posting the compressed payload as standard calldata under the stated fee assumptions ($10.71 vs. $129.91).
   3. **73.2% EVM Gas Reduction for Batch Audits:** On-chain contiguous subtree range proofs (`MerkleLib.sol`) reduce verification gas for 8 consecutive records from 97,200 gas down to 26,050 gas.
 - **One-Command Reproduction:**
   ```bash
@@ -89,11 +89,13 @@ All benchmark figures below are generated directly from executed code and commit
 ### 3.1 Table A: Theoretical Uncompressed Cost Baseline
 
 > [!NOTE]
+> **Table A: Theoretical Uncompressed Cost Baseline.** Calldata cost is the standard calldata calculation (16 gas per non-zero byte and 4 gas per zero byte plus intrinsic and stated execution gas), before application of the EIP-7623 floor. This makes the reported blob savings factor conservative for data-heavy transactions under current post-Pectra rules, because the EIP-7623 floor can raise the effective calldata cost. See Section 6 (Post-Pectra Calldata Floor Sensitivity) for the floor-adjusted analysis.
+>
 > **Assumptions:** Uncompressed raw data; usable payload per blob is strictly 126,945 bytes (4096 field elements * 31 bytes minus 31-byte FE0 header). Execution base fee: 15 gwei; blob base fee: 2 gwei; ETH price: $3,000 USD.
 >
 > **SSTORE Caution:** SSTORE figures represent a theoretical mathematical extrapolation (22,100 gas per 32-byte slot) and are **not executable as a single transaction**. At the 30M block gas limit, publishing 1.0 MiB via SSTORE would require at least 25 full Ethereum blocks.
 
-| Dataset Size | Raw Bytes | Blobs Needed | Blob Cost (USD) | Standard Calldata (USD) | Blob Savings vs Calldata | Theoretical SSTORE (USD)* | Min Blocks (SSTORE at 30M Gas) |
+| Dataset Size | Raw Bytes | Blobs Needed | Blob Cost (USD) | Standard Calldata Cost (USD, Pre-Floor) | Blob Savings vs Calldata | Theoretical SSTORE (USD)* | Min Blocks (SSTORE at 30M Gas) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **0.125 MiB** | 131,072 | 2 | $10.7079 | $95.32 | **8.9x** | $4,074.42 | 4 blocks |
 | **1.0 MiB** | 1,048,576 | 9 | $27.2379 | $755.92 | **27.8x** | $32,588.72 | 25 blocks |
@@ -147,6 +149,8 @@ Under Ethereum consensus rules, blob throughput is subject to target and maximum
 
 The cost advantage of blobs varies with execution base fees ($P_{\text{base}}$) and blob base fees ($P_{\text{blob}}$). Setting the blob posting cost equal to standard calldata cost yields the break-even blob base fee:
 
+> **Calldata Basis:** Standard calldata costs in this sensitivity grid are calculated using standard pre-floor calldata gas (16 gas per non-zero byte, 4 gas per zero byte), making the reported savings ratios conservative under post-Pectra rules for data-heavy transactions.
+
 $$P_{\text{blob}}^{\text{break-even}} = \frac{21,000 + 16 \times S - \text{Gas}_{\text{exec}}}{K \times 131,072} \times P_{\text{base}}$$
 
 For a 1.0 MiB dataset ($S = 1,048,576$, $K = 9$, $\text{Gas}_{\text{exec}} = 448,000$), the break-even coefficient is $\approx 13.86$.
@@ -166,7 +170,7 @@ For a 1.0 MiB dataset ($S = 1,048,576$, $K = 9$, $\text{Gas}_{\text{exec}} = 448
 
 ## 6. Post-Pectra Calldata Floor Sensitivity (EIP-7623)
 
-EIP-7623 proposes an execution-layer calldata floor to reduce maximum block sizes without penalizing compute-heavy transactions. The official specification defines:
+EIP-7623, activated with Pectra, defines an execution-layer calldata floor that raises the effective gas cost of data-heavy transactions whose execution gas is small relative to their calldata size [EIP-7623](https://eips.ethereum.org/EIPS/eip-7623). The official specification defines:
 
 $$\text{Tokens} = (\text{Zero Bytes} \times 1) + (\text{Non-Zero Bytes} \times 4)$$
 $$\text{Floor Gas} = 21{,}000 + 10 \times \text{Tokens}$$
@@ -177,7 +181,9 @@ For data-availability transactions with minimal execution gas:
 - **All Non-Zero Bytes (Compressed Data):** Each non-zero byte costs $4\text{ tokens} \times 10 = 40\text{ gas/byte}$.
 - **Mixed Data:** A 50/50 mixture yields an effective floor of $25\text{ gas/byte}$.
 
-Because real compressed research data is over 99.6% non-zero, the effective floor for uncompressed calldata posting under EIP-7623 will be $\approx 39.88\text{ gas per byte}$, not the 32 gas/byte heuristic previously discussed. If enacted, post-Pectra calldata costs for pure DA will increase by 2.5x, further widening the economic advantage of blobs. Detailed vectors and calculations are in `benchmarks/calldata_eip7623_sensitivity.csv`.
+Under post-Pectra rules, a pure data-posting transaction with low execution gas will usually be charged at or near the EIP-7623 floor rather than the standard calldata cost, so the effective calldata cost for this workload is higher than the Table A baseline and the blob cost advantage is larger than the conservative Table A factor. The magnitude depends on the zero and non-zero byte composition of the specific payload and on the execution gas of the transaction.
+
+Because compressed research data is over 99.6% non-zero, the effective floor for uncompressed calldata posting under EIP-7623 is $\approx 39.88\text{ gas per byte}$, not the 32 gas/byte heuristic previously discussed. Post-Pectra calldata costs for pure DA increase by approximately 2.5x, further widening the economic advantage of blobs. Detailed vectors and calculations are in `benchmarks/calldata_eip7623_sensitivity.csv`.
 
 ---
 

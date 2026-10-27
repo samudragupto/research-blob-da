@@ -11,7 +11,7 @@
 
 Empirical science and machine learning face a persistent reproducibility crisis, exacerbated by the ephemeral nature of web storage, bitrot in academic archives, and the prohibitive economic cost of posting large empirical datasets to immutable public blockchains. The introduction of EIP-4844 (Cancun hard fork) introduced ephemeral data blobs to Ethereum, providing temporary (~18.2 day) data availability priced via an independent dynamic fee market. While designed almost exclusively for Layer-2 (L2) rollup transaction batches, we demonstrate that EIP-4844 blobs serve as a uniquely cost-effective, high-throughput, and cryptographically verifiable primitive for empirical academic research, machine learning training traces, climate sensor telemetry, and experimental archives.
 
-This paper presents **research-blob-da**, a complete protocol architecture, smart contract registry, and off-chain pipeline that turns EIP-4844 blobs into a verifiable research data-availability layer. Our contributions include: (i) an RFC 8785 canonical serialization framing coupled with domain-separated binary Merkle trees and BLS12-381 field element packing strategies; (ii) an on-chain dataset registry contract with support for multi-transaction blob aggregation, citation tracking, and zero-copy optimistic property refutation; and (iii) an extensive empirical evaluation across four synthetic scientific benchmarks and one real-world academic dataset from the OpenAlex API. Our measurements show that EIP-4844 blobs achieve a 27.8x cost reduction compared to standard Ethereum calldata on a theoretical 1.0 MiB uncompressed dataset ($27.24 vs. $755.92), and a 12.1x measured reduction on real-world ML telemetry (where Zstandard compression reduces a 1,056 KiB trace to 174.9 KiB, requiring only 2 blobs). Storing this data in contract storage (SSTORE) is purely theoretical, costing over $32,588 and requiring at least 25 full Ethereum blocks at the 30M gas limit. Furthermore, our contiguous on-chain Merkle range proofs yield up to 89.1% gas savings over independent proofs, while optimistic property refutations execute on-chain for under 350,000 gas. We analyze the theoretical and practical implications of the 4,096-epoch consensus client pruning boundary, establishing formal bridging architectures for permanent academic preservation.
+This paper presents **research-blob-da**, a complete protocol architecture, smart contract registry, and off-chain pipeline that turns EIP-4844 blobs into a verifiable research data-availability layer. Our contributions include: (i) an RFC 8785 canonical serialization framing coupled with domain-separated binary Merkle trees and BLS12-381 field element packing strategies; (ii) an on-chain dataset registry contract with support for multi-transaction blob aggregation, citation tracking, and zero-copy optimistic property refutation; and (iii) an extensive empirical evaluation across four synthetic scientific benchmarks and one real-world academic dataset from the OpenAlex API. Our measurements show that EIP-4844 blobs achieve a 27.8x cost reduction compared to standard Ethereum calldata before application of the EIP-7623 floor on a theoretical 1.0 MiB uncompressed dataset ($27.24 vs. $755.92), and a 12.1x measured reduction on an ML training trace (where Zstandard compression reduces a 1,056.1 KiB synthetic trace to 174.9 KiB, requiring only 2 blobs). Storing this data in contract storage (SSTORE) is purely theoretical, costing over $32,588 and requiring at least 25 full Ethereum blocks at the 30M gas limit. Furthermore, our contiguous on-chain Merkle range proofs yield up to 89.1% gas savings over independent proofs, while optimistic property refutations execute on-chain for under 350,000 gas. We analyze the theoretical and practical implications of the 4,096-epoch consensus client pruning boundary, establishing formal bridging architectures for permanent academic preservation.
 
 ---
 
@@ -275,14 +275,16 @@ To ensure strict clarity for protocol researchers, cost reporting is separated i
 
 Cost calculations assume standard documented parameters: ETH Price = $3,000.00 USD, Execution Base Fee = 15.0 gwei, Blob Base Fee = 2.0 gwei, Standard Calldata = 16 gas/byte (plus 21,000 tx base).
 
-#### Table 1A: Theoretical Uncompressed Cost Baseline
+#### Table 1A: Theoretical Uncompressed Cost Baseline (Standard Calldata Before EIP-7623 Floor)
 
 > [!NOTE]
+> **Table 1A: Theoretical Uncompressed Cost Baseline.** Calldata cost is the standard calldata calculation (16 gas per non-zero byte and 4 gas per zero byte plus intrinsic and stated execution gas), before application of the EIP-7623 floor. This makes the reported blob savings factor conservative for data-heavy transactions under current post-Pectra rules, because the EIP-7623 floor can raise the effective calldata cost. See Section 5.3 (Post-Pectra Calldata Floor Sensitivity) for the floor-adjusted analysis.
+>
 > **Assumptions:** Uncompressed raw data; usable payload per blob is strictly 126,945 bytes (4096 field elements * 31 bytes minus 31-byte FE0 header). Execution base fee: 15 gwei; blob base fee: 2 gwei; ETH price: $3,000 USD.
 >
 > **SSTORE Caution:** SSTORE figures represent a theoretical mathematical extrapolation (22,100 gas per 32-byte slot) and are **not executable as a single transaction**. At the 30M block gas limit, publishing 1.0 MiB via SSTORE would require at least 25 full Ethereum blocks.
 
-| Dataset Size | Raw Bytes | Blobs Needed | Blob Cost (USD) | Standard Calldata (USD) | Blob Savings vs Calldata | Theoretical SSTORE (USD)* | Min Blocks (SSTORE at 30M Gas) |
+| Dataset Size | Raw Bytes | Blobs Needed | Blob Cost (USD) | Standard Calldata Cost (USD, Pre-Floor) | Blob Savings vs Calldata | Theoretical SSTORE (USD)* | Min Blocks (SSTORE at 30M Gas) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **0.125 MiB** | 131,072 | 2 | $10.7079 | $95.32 | **8.9x** | $4,074.42 | 4 blocks |
 | **1.0 MiB** | 1,048,576 | 9 | $27.2379 | $755.92 | **27.8x** | $32,588.72 | 25 blocks |
@@ -318,11 +320,11 @@ Table 2 evaluates Zstandard compression and field element packing efficiency acr
 
 | Dataset Type | Records | Raw Size (KiB) | Zstd Size (KiB) | Compression Ratio | Blobs Required | Packing Efficiency | Packing Waste (KiB) | Encoding Time (ms) | Throughput (MiB/s) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **ML Training Trace** | 10,000 | 1,056.1 | 174.9 | **6.04x** | 2 | 70.6% | 73.0 | 225.5 | **4.44** |
-| **Climate Station Data** | 20,000 | 3,051.4 | 403.1 | **7.57x** | 4 | 81.3% | 92.8 | 440.4 | **6.50** |
-| **Genomics Variants** | 8,000 | 946.0 | 163.0 | **5.80x** | 2 | 65.8% | 84.9 | 143.7 | **6.22** |
-| **Academic Metadata** | 5,000 | 825.5 | 74.1 | **11.13x** | 1 | 59.8% | 49.8 | 103.8 | **7.36** |
-| **OpenAlex Academic Works (Real)** | 500 | 207.5 | 50.3 | **4.13x** | 1 | 41.2% | 73.7 | 11.5 | **17.20** |
+| **ML Training Trace (Synthetic)** | 10,000 | 1,056.1 | 174.9 | **6.04x** | 2 | 70.6% | 73.0 | 210.6 | **4.90** |
+| **Climate Station Data (Synthetic)** | 20,000 | 3,051.4 | 403.1 | **7.57x** | 4 | 81.3% | 92.8 | 423.8 | **7.03** |
+| **Genomics Variants (Synthetic)** | 8,000 | 946.0 | 163.0 | **5.80x** | 2 | 65.8% | 84.9 | 143.6 | **6.43** |
+| **Academic Metadata (Synthetic)** | 5,000 | 825.4 | 74.1 | **11.13x** | 1 | 59.8% | 49.8 | 100.9 | **7.99** |
+| **OpenAlex Academic Works (Real)** | 500 | 207.5 | 50.3 | **4.13x** | 1 | 40.6% | 73.7 | 11.3 | **17.93** |
 
 Key findings from Table 2 and Figure 2:
 - Structured tabular data and repeated telemetry keys achieve between **4.13x and 11.13x** compression.
@@ -420,7 +422,7 @@ However, academic dataset publishing differs fundamentally from L2 rollups in la
 
 ### 5.3 Post-Pectra Calldata Floor Sensitivity (EIP-7623)
 
-EIP-7623 proposes an execution-layer calldata floor to reduce maximum execution block sizes without penalizing compute-heavy transactions [4]. The official specification establishes:
+EIP-7623, activated with Pectra, defines an execution-layer calldata floor that raises the effective gas cost of data-heavy transactions whose execution gas is small relative to their calldata size [4]. The official specification establishes:
 
 $$\text{Tokens} = (\text{Zero Bytes} \times 1) + (\text{Non-Zero Bytes} \times 4)$$
 $$\text{Standard Calldata Gas} = 4 \times \text{Tokens}$$
@@ -436,7 +438,7 @@ Under this floor:
 - Non-zero bytes (which constitute over 99.6% of compressed scientific payloads) cost $4\text{ tokens} \times 10 = 40\text{ gas per byte}$.
 - The effective floor for compressed calldata posting is $\approx 39.88\text{ gas per byte}$. The commonly cited figure of "32 gas per byte" represented an illustrative heuristic assuming a 25% zero-byte mixture.
 
-If enacted in Pectra, EIP-7623 will increase calldata posting costs for pure data availability by 2.5x (from 16 to 40 gas per non-zero byte), widening the economic savings of blobs from 27.8x to approximately 69x for uncompressed streams. However, because this floor is pending and depends on payload byte distributions, we isolate it as a post-Pectra sensitivity scenario rather than a primary headline baseline. Full sensitivity vectors are documented in `benchmarks/calldata_eip7623_sensitivity.csv`.
+Under post-Pectra rules, a pure data-posting transaction with low execution gas will usually be charged at or near the EIP-7623 floor rather than the standard calldata cost, so the effective calldata cost for this workload is higher than the Table A baseline and the blob cost advantage is larger than the conservative Table A factor. The magnitude depends on the zero and non-zero byte composition of the specific payload and on the execution gas of the transaction. For pure data availability, post-Pectra calldata costs increase by 2.5x (from 16 to 40 gas per non-zero byte), widening the economic savings of blobs from 27.8x to approximately 69x for uncompressed streams. Full sensitivity vectors are documented in `benchmarks/calldata_eip7623_sensitivity.csv`.
 
 ### 5.4 Blob Capacity, Transaction Limits, and Inclusion Times
 
@@ -490,7 +492,7 @@ For a 1.0 MiB dataset ($S = 1,048,576$, $K = 9$, $\text{Gas}_{\text{exec}} = 448
 
 ## 8. Conclusion and Future Work
 
-We have presented **research-blob-da**, an open-source research prototype demonstrating the use of EIP-4844 blobs as a high-performance, cost-effective data-availability primitive for empirical science and machine learning. Through canonical serialization, field element packing, smart contract registries, and optimistic property claims, the protocol lowers the economic barrier to on-chain data availability by 27.8x on theoretical uncompressed data and 12.1x on measured compressed ML traces compared to calldata, while preserving complete cryptographic integrity.
+We have presented **research-blob-da**, an open-source research prototype demonstrating the use of EIP-4844 blobs as a high-performance, cost-effective data-availability primitive for empirical science and machine learning. Through canonical serialization, field element packing, smart contract registries, and optimistic property claims, the protocol lowers the economic barrier to on-chain data availability by 27.8x on theoretical uncompressed data versus standard calldata before application of the EIP-7623 floor and 12.1x on a measured compressed synthetic ML training trace compared to standard calldata, while preserving complete cryptographic integrity.
 
 Future extensions include:
 1. Integrating PeerDAS (EIP-7594) as Ethereum scales from 6 blobs to 64 blobs per block.
