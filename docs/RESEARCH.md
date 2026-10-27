@@ -303,15 +303,15 @@ Table 2 evaluates the efficacy of Zstandard compression across our four academic
 
 | Dataset Type | Records | Raw Size (KiB) | Zstd Size (KiB) | Compression Ratio | Blobs Required | Packing Efficiency | Packing Waste (KiB) | Encoding Time (ms) | Throughput (MiB/s) |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **ML Training Trace** | 10,000 | 1,056.14 | 174.91 | **6.04x** | 2 | 70.6% | 73.03 | 219.14 | 4.71 |
-| **Climate Station Data** | 20,000 | 3,051.40 | 403.09 | **7.57x** | 4 | 81.3% | 92.79 | 440.25 | 6.77 |
-| **Genomics Variants** | 8,000 | 946.04 | 163.02 | **5.80x** | 2 | 65.8% | 84.92 | 148.47 | 6.22 |
-| **Academic Metadata** | 5,000 | 825.45 | 74.14 | **11.13x** | 1 | 59.8% | 49.83 | 118.85 | 6.78 |
+| **ML Training Trace** | 10,000 | 1,056.14 | 174.91 | **6.04x** | 2 | 70.6% | 73.03 | **208.99** | **4.94** |
+| **Climate Station Data** | 20,000 | 3,051.40 | 403.09 | **7.57x** | 4 | 81.3% | 92.79 | **429.67** | **6.94** |
+| **Genomics Variants** | 8,000 | 946.04 | 163.02 | **5.80x** | 2 | 65.8% | 84.92 | **148.00** | **6.24** |
+| **Academic Metadata** | 5,000 | 825.45 | 74.14 | **11.13x** | 1 | 59.8% | 49.83 | **104.51** | **7.71** |
 
 Key findings from Table 2 and Figure 2:
 - Tabular climate telemetry and JSON metadata exhibit high structural redundancy, achieving compression ratios between **6.04x and 11.13x**.
 - A 3.05 MiB tabular dataset compresses to 403 KiB, fitting into just 4 blobs instead of 25 uncompressed blobs, saving over $80 in L1 blob transaction fees.
-- Encoding throughput exceeds **4.7 to 6.8 MiB/s** in pure Python, enabling desktop researchers to encode gigabyte-scale datasets in seconds.
+- Encoding throughput exceeds **4.9 to 7.7 MiB/s** in pure Python on the host Ryzen 7 7840HS, enabling desktop researchers to encode gigabyte-scale datasets in seconds.
 
 ![Figure 2: Compression Efficiency Across Scientific Datasets](file:///c:/Users/user/research-blob-da/docs/figures/figure2_compression_efficiency.png)
 
@@ -323,10 +323,10 @@ Table 3 evaluates the gas consumption of on-chain Merkle proof verification exec
 
 | Tree Depth ($D$) | Record Count ($2^D$) | Single Proof Hashes | Single Proof Gas | Off-Chain Verify ($\mu$s) | Range Leaves | Contiguous Range Gas | Range vs. Independent Savings |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **4** | 16 | 4 | 6,200 | 27.97 | 8 | 7,850 | **84.2%** |
-| **8** | 256 | 8 | 9,200 | 43.04 | 8 | 9,650 | **86.9%** |
-| **12** | 4,096 | 12 | 12,200 | 78.40 | 8 | 11,450 | **88.3%** |
-| **16** | 65,536 | 16 | 15,200 | 69.86 | 8 | 13,250 | **89.1%** |
+| **4** | 16 | 4 | 6,200 | **18.12** | 8 | 7,850 | **84.2%** |
+| **8** | 256 | 8 | 9,200 | **34.83** | 8 | 9,650 | **86.9%** |
+| **12** | 4,096 | 12 | 12,200 | **51.98** | 8 | 11,450 | **88.3%** |
+| **16** | 65,536 | 16 | 15,200 | **68.24** | 8 | 13,250 | **89.1%** |
 
 Key findings from Table 3 and Figure 3:
 - Single-record inclusion verification scales logarithmically ($O(D)$), requiring only **15,200 gas** for a tree spanning 65,536 scientific records.
@@ -336,18 +336,18 @@ Key findings from Table 3 and Figure 3:
 
 ### 4.4 Pipeline Latency Breakdown
 
-Table 4 details the execution latency breakdown across the serialization, compression, Merkle tree construction, blob packing, and decoding stages.
+Table 4 details the execution latency breakdown across the serialization, compression, Merkle tree construction, blob packing, and decoding stages measured on the host Ryzen 7 7840HS.
 
 #### Table 4: Pipeline Latency Breakdown Across Dataset Sizes (Mean $\pm$ Std)
 
 | Records | Raw Size (KiB) | Zstd Size (KiB) | Serialization (ms) | Compression (ms) | Merkle Tree (ms) | Blob Packing (ms) | Reconstruct (ms) | Total Pipeline (ms) |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **1,000** | 104.1 | 17.2 | 4.35 | 0.42 | 14.09 | 19.90 | 15.42 | **54.18 $\pm$ 2.94** |
-| **5,000** | 525.3 | 87.1 | 22.21 | 1.57 | 83.09 | 113.91 | 87.98 | **308.76 $\pm$ 13.17** |
-| **15,000** | 1,591.3 | 260.5 | 66.98 | 4.04 | 213.85 | 290.49 | 225.28 | **800.65 $\pm$ 6.48** |
-| **30,000** | 3,196.6 | 511.9 | 150.12 | 8.60 | 514.07 | 760.78 | 538.42 | **1,971.99 $\pm$ 114.77** |
+| **1,000** | 104.1 | 17.2 | 4.31 | 0.34 | 13.11 | 18.59 | 14.06 | **50.41 $\pm$ 0.52** |
+| **5,000** | 525.3 | 87.1 | 20.94 | 1.39 | 78.95 | 103.79 | 80.98 | **286.04 $\pm$ 1.43** |
+| **15,000** | 1,591.3 | 260.5 | 63.52 | 3.66 | 201.43 | 273.76 | 207.73 | **750.11 $\pm$ 6.20** |
+| **30,000** | 3,196.6 | 511.9 | 131.33 | 6.78 | 406.36 | 551.52 | 420.15 | **1,516.14 $\pm$ 11.99** |
 
-As depicted in Figure 4, blob packing (field element conversion) and Merkle tree generation constitute the primary computational overheads, while Zstandard compression executes in under 9 ms even for 30,000 records.
+As depicted in Figure 4, blob packing (field element conversion) and Merkle tree generation constitute the primary computational overheads, while Zstandard compression executes in under 7 ms even for 30,000 records.
 
 ![Figure 4: Latency Breakdown](file:///c:/Users/user/research-blob-da/docs/figures/figure4_latency_breakdown.png)
 
@@ -359,16 +359,16 @@ Table 5 evaluates the trade-off between Zstandard compression levels (Level 0 ra
 
 | Configuration | Codec | Zstd Level | Encoded Size (KiB) | Compression Ratio | Blobs Required | Encode Time (ms) | Decode Time (ms) |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Raw Uncompressed** | 0 | 0 | 3,051.40 | 1.00x | 25 | 503.48 | 443.74 |
-| **Zstd Fast** | 1 | 1 | 410.44 | 7.43x | 4 | 532.76 | 371.72 |
-| **Zstd Default** | 1 | 3 | 403.09 | 7.57x | 4 | 509.67 | 405.89 |
-| **Zstd Balanced** | 1 | 9 | 345.36 | 8.84x | 3 | 601.23 | 429.95 |
-| **Zstd Maximum** | 1 | 19 | 285.77 | 10.68x | 3 | 1,914.37 | 382.50 |
+| **Raw Uncompressed** | 0 | 0 | 3,051.40 | 1.00x | 25 | **476.84** | **348.16** |
+| **Zstd Fast** | 1 | 1 | 410.44 | 7.43x | 4 | **431.52** | **335.23** |
+| **Zstd Default** | 1 | 3 | 403.09 | 7.57x | 4 | **425.00** | **345.95** |
+| **Zstd Balanced** | 1 | 9 | 345.36 | 8.84x | 3 | **476.46** | **342.87** |
+| **Zstd Maximum** | 1 | 19 | 285.77 | 10.68x | 3 | **1,350.82** | **339.99** |
 
 Key insights from Table 5 and Figure 5:
 - Moving from Raw to Zstandard Level 1 reduces blob count from **25 blobs to 4 blobs** with negligible CPU penalty.
-- Increasing from Level 3 to Level 9 reduces blob count from 4 to 3 (saving another 128 KiB blob transaction), while requiring only 91 ms additional encoding time.
-- Level 19 achieves the highest ratio (10.68x) but increases encoding latency by 3.7x. We conclude that **Level 9** provides the optimal economic sweet spot for academic publishing.
+- Increasing from Level 3 to Level 9 reduces blob count from 4 to 3 (saving another 128 KiB blob transaction), while requiring only 51 ms additional encoding time.
+- Level 19 achieves the highest ratio (10.68x) but increases encoding latency by 3.1x. We conclude that **Level 9** provides the optimal economic sweet spot for academic publishing.
 
 ![Figure 5: Compression Ablation](file:///c:/Users/user/research-blob-da/docs/figures/figure5_compression_ablation.png)
 
@@ -376,10 +376,10 @@ Key insights from Table 5 and Figure 5:
 
 | Packing Strategy | Packing Mode | Usable Payload / Blob | Blobs Required | Encode Time (ms) | Decode Time (ms) |
 |:---|:---:|:---:|:---:|:---:|:---:|
-| **FE31 (Conservative 31 B)** | 0 | 126,976 bytes | 4 | **597.87** | **608.58** |
-| **FE254 (Dense 254 bits)** | 1 | 130,048 bytes | 4 | **1,324.40** | **1,257.25** |
+| **FE31 (Conservative 31 B)** | 0 | 126,976 bytes | 4 | **423.31** | **339.26** |
+| **FE254 (Dense 254 bits)** | 1 | 130,048 bytes | 4 | **1,078.06** | **1,284.05** |
 
-While FE254 provides 3,072 additional usable bytes per blob, its bit-level manipulation incurs a 2.2x latency overhead. FE31 is recommended for standard pipelines, with FE254 reserved for boundary cases where payload slightly exceeds a blob boundary.
+While FE254 provides 3,072 additional usable bytes per blob, its bit-level manipulation incurs a 2.5x latency overhead. FE31 is recommended for standard pipelines, with FE254 reserved for boundary cases where payload slightly exceeds a blob boundary.
 
 ---
 

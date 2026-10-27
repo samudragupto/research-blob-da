@@ -75,10 +75,10 @@ flowchart TB
 
 | Domain | Records | Raw Size | Compressed | Ratio | Blobs | Encoding Time | Throughput |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **ML Training Trace** | 10,000 | 1,056 KiB | 175 KiB | **6.04x** | 2 | 219 ms | 4.71 MiB/s |
-| **Climate Station Data** | 20,000 | 3,051 KiB | 403 KiB | **7.57x** | 4 | 440 ms | 6.77 MiB/s |
-| **Genomics Variants** | 8,000 | 946 KiB | 163 KiB | **5.80x** | 2 | 148 ms | 6.22 MiB/s |
-| **Academic Metadata** | 5,000 | 825 KiB | 74 KiB | **11.13x** | 1 | 119 ms | 6.78 MiB/s |
+| **ML Training Trace** | 10,000 | 1,056 KiB | 175 KiB | **6.04x** | 2 | **209 ms** | **4.94 MiB/s** |
+| **Climate Station Data** | 20,000 | 3,051 KiB | 403 KiB | **7.57x** | 4 | **430 ms** | **6.94 MiB/s** |
+| **Genomics Variants** | 8,000 | 946 KiB | 163 KiB | **5.80x** | 2 | **148 ms** | **6.24 MiB/s** |
+| **Academic Metadata** | 5,000 | 825 KiB | 74 KiB | **11.13x** | 1 | **105 ms** | **7.71 MiB/s** |
 
 ### 3.3 On-Chain Verification Gas Costs
 

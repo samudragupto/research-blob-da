@@ -6,13 +6,14 @@ This document outlines the formal experimental methodology, hardware specificati
 
 ## 1. Experimental Environment and System Specifications
 
-All benchmarks, cryptographic operations, serialization pipelines, and EVM simulations were executed on a dedicated research workstation with the following specifications:
+All benchmarks, cryptographic operations, serialization pipelines, and EVM simulations were executed directly on the host evaluation hardware with the following verified system specifications:
 
-- **Host Processor:** AMD Ryzen 9 7950X 16-Core Processor @ 4.50 GHz (Boost up to 5.70 GHz), 32 execution threads, 64 MB L3 Cache.
-- **System Memory:** 64 GB DDR5-5600 MT/s Dual-Channel ECC DRAM.
-- **Storage Subsystem:** 2 TB NVMe PCIe 4.0 SSD (Sequential Read: 7,000 MB/s, Sequential Write: 5,000 MB/s).
-- **Host Operating System:** Microsoft Windows 11 Enterprise (x86_64, Build 22631).
-- **Execution Runtime:** Python 3.13.11 64-bit with optimized C-extensions (`zstandard` 0.23.0, `pycryptodome` 3.21.0, `ckzg` 2.0.1).
+- **Host Machine:** Lenovo LOQ 15APH8 (Model 82XT).
+- **Host Processor:** AMD Ryzen 7 7840HS w/ Radeon 780M Graphics (8 Physical Cores, 16 Logical Processors, Zen 4 Phoenix architecture, 3.80 GHz Base Clock, Boost up to 5.10 GHz, 16 MB L3 Cache, TSMC 4nm FinFET).
+- **Dedicated Graphics:** NVIDIA GeForce RTX 4060 Laptop GPU (8 GB GDDR6, 128-bit bus, Ada Lovelace architecture).
+- **System Memory:** 16 GB DDR5-5600 MT/s Dual-Channel DRAM (2 x 8 GB Micron Technology).
+- **Host Operating System:** Microsoft Windows 11 Home Single Language (64-bit, Build 26200).
+- **Execution Runtime:** Python 3.13.11 64-bit with optimized C-extensions (`zstandard` 0.23.0, `pycryptodome` 3.21.0).
 - **Ethereum Virtual Machine Framework:** Foundry `forge` version 1.5.1-stable (`cancun` EVM target, `via_ir = true`, optimizer enabled with 200 runs).
 
 ---
