@@ -1,5 +1,5 @@
 tree_depth,record_count,proof_length_hashes,estimated_onchain_gas,offchain_verify_mean_us,offchain_verify_std_us,range_proof_leaves,range_proof_gas,range_vs_independent_savings_pct
-4,16,4,6200,17.82,4.8,8,7850,84.2
-8,256,8,9200,34.35,0.74,8,9650,86.9
-12,4096,12,12200,51.73,2.8,8,11450,88.3
-16,65536,16,15200,68.19,1.45,8,13250,89.1
+4,16,4,6200,19.27,3.72,8,7850,84.2
+8,256,8,9200,34.78,0.67,8,9650,86.9
+12,4096,12,12200,52.45,3.43,8,11450,88.3
+16,65536,16,15200,76.7,11.84,8,13250,89.1

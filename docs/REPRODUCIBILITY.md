@@ -106,6 +106,18 @@ This performs 10 repetitions per condition with warm-up cycles and writes struct
 - `benchmarks/ablation_compression.csv`
 - `benchmarks/ablation_packing.csv`
 
+### 3.3 Benchmark Freeze (v0.1.0)
+The benchmark generation accompanying the v0.1.0 release is frozen in `benchmarks/FROZEN_BENCHMARKS_v0.1.0.json`.
+To verify that your benchmark CSV files match the frozen release generation:
+```bash
+# On Linux / macOS
+sha256sum -c <(jq -r '.benchmark_files | to_entries[] | "\(.value)  \(.key)"' benchmarks/FROZEN_BENCHMARKS_v0.1.0.json)
+
+# On Windows PowerShell
+Get-FileHash benchmarks/*.csv, benchmarks/generated_tables.md -Algorithm SHA256
+```
+*Note on Execution Hardware:* Re-running `experiments.py` on different hardware or operating systems will naturally produce hardware-dependent timing latencies (mean and standard deviation), while dataset sizes, compression ratios, blob counts, and monetary cost models remain strictly invariant and deterministic.
+
 ### 3.3 Generate Publication Plots
 Generate high-resolution vector (PDF) and raster (PNG) publication figures:
 ```bash
