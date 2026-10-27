@@ -24,12 +24,35 @@ export const DATASET_REGISTRY_ABI = [
     type: "function",
     name: "openDataset",
     inputs: [
+      { name: "salt", type: "bytes32" },
+      {
+        name: "params",
+        type: "tuple",
+        components: [
+          { name: "recordsRoot", type: "bytes32" },
+          { name: "contentHash", type: "bytes32" },
+          { name: "metadataHash", type: "bytes32" },
+          { name: "rawSize", type: "uint64" },
+          { name: "encodedSize", type: "uint64" },
+          { name: "recordCount", type: "uint32" },
+          { name: "codec", type: "uint8" },
+          { name: "layout", type: "uint8" },
+          { name: "packing", type: "uint8" },
+        ],
+      },
+      { name: "numTxBlobs", type: "uint256" },
+      { name: "finalize_", type: "bool" },
+    ],
+    outputs: [{ name: "datasetId", type: "bytes32" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "appendBlobs",
+    inputs: [
       { name: "datasetId", type: "bytes32" },
-      { name: "recordsRoot", type: "bytes32" },
-      { name: "contentHash", type: "bytes32" },
-      { name: "totalRecords", type: "uint32" },
-      { name: "metadataURI", type: "string" },
-      { name: "finalize", type: "bool" },
+      { name: "numTxBlobs", type: "uint256" },
+      { name: "finalize_", type: "bool" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -39,7 +62,8 @@ export const DATASET_REGISTRY_ABI = [
     name: "appendExternalBlobs",
     inputs: [
       { name: "datasetId", type: "bytes32" },
-      { name: "finalize", type: "bool" },
+      { name: "versionedHashes", type: "bytes32[]" },
+      { name: "finalize_", type: "bool" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -53,14 +77,21 @@ export const DATASET_REGISTRY_ABI = [
         name: "",
         type: "tuple",
         components: [
-          { name: "owner", type: "address" },
+          { name: "researcher", type: "address" },
+          { name: "createdAt", type: "uint40" },
+          { name: "blobCount", type: "uint32" },
+          { name: "externalBlobCount", type: "uint24" },
           { name: "recordsRoot", type: "bytes32" },
           { name: "contentHash", type: "bytes32" },
-          { name: "totalRecords", type: "uint32" },
-          { name: "registeredAt", type: "uint48" },
-          { name: "totalBlobs", type: "uint16" },
-          { name: "flags", type: "uint8" },
-          { name: "metadataURI", type: "string" },
+          { name: "metadataHash", type: "bytes32" },
+          { name: "rawSize", type: "uint64" },
+          { name: "encodedSize", type: "uint64" },
+          { name: "recordCount", type: "uint32" },
+          { name: "codec", type: "uint8" },
+          { name: "layout", type: "uint8" },
+          { name: "packing", type: "uint8" },
+          { name: "status", type: "uint8" },
+          { name: "firstBlobAt", type: "uint40" },
         ],
       },
     ],
@@ -123,12 +154,22 @@ export async function postBlobDataset(config: PostBlobDatasetConfig): Promise<He
   console.log(`  Content Hash: ${manifest.content_hash}`);
   console.log(`  Blob Count:   ${blobCount}`);
 
-  // 2. Format dataset ID and parameters
-  const datasetId = manifest.content_hash as Hex;
-  const recordsRoot = manifest.records_root as Hex;
-  const contentHash = manifest.content_hash as Hex;
-  const totalRecords = manifest.record_count as number;
-  const metadataURI = `data:application/json,${encodeURIComponent(JSON.stringify(manifest.metadata || {}))}`;
+  // 2. Format dataset parameters conforming to IDatasetRegistry.DatasetParams
+  const salt = ("0x" + Buffer.from("rbda-dataset-salt").toString("hex").padEnd(64, "0")) as Hex;
+  const metadataStr = JSON.stringify(manifest.metadata || {});
+  const metadataHash = ("0x" + Buffer.from(metadataStr).toString("hex").slice(0, 64).padEnd(64, "0")) as Hex;
+
+  const datasetParams = {
+    recordsRoot: manifest.records_root as Hex,
+    contentHash: manifest.content_hash as Hex,
+    metadataHash,
+    rawSize: BigInt(manifest.raw_size || 0),
+    encodedSize: BigInt(manifest.encoded_size || 0),
+    recordCount: Number(manifest.record_count || 0),
+    codec: Number(manifest.codec ?? 1),
+    layout: Number(manifest.layout ?? 0),
+    packing: Number(manifest.packing ?? 0),
+  };
 
   // 3. Send transaction with blobs attached
   const maxFeePerBlobGas = parseGwei(String(config.maxBlobFeeGwei ?? 15));
@@ -137,7 +178,7 @@ export async function postBlobDataset(config: PostBlobDatasetConfig): Promise<He
     address: config.registryAddress,
     abi: DATASET_REGISTRY_ABI,
     functionName: "openDataset",
-    args: [datasetId, recordsRoot, contentHash, totalRecords, metadataURI, true],
+    args: [salt, datasetParams, BigInt(blobCount), true],
     blobs: rawBlobs,
     maxFeePerBlobGas,
   });

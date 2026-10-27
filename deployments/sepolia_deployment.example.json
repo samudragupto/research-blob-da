@@ -1,0 +1,24 @@
+{
+  "network": "sepolia",
+  "chain_id": 11155111,
+  "deployment_status": "PENDING_FUNDED_ACCOUNT",
+  "contract_name": "DatasetRegistry",
+  "contract_address": "0x0000000000000000000000000000000000000000",
+  "deployer": "0x0000000000000000000000000000000000000000",
+  "transaction_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "block_number": 0,
+  "verification_url": "https://sepolia.etherscan.io/address/0x0000000000000000000000000000000000000000#code",
+  "blob_transactions": [
+    {
+      "transaction_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "dataset_identifier": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "versioned_hashes": [
+        "0x0100000000000000000000000000000000000000000000000000000000000000"
+      ],
+      "block_number": 0,
+      "slot_number": 0,
+      "beacon_explorer_url": "https://sepolia.beaconcha.in/slot/0"
+    }
+  ],
+  "operational_notes": "Example deployment record template for Ethereum Sepolia testnet. Real addresses and transaction hashes will be populated upon broadcast using a funded testnet account."
+}
