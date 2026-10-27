@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "research-blob-da"
+version = "1.0.0"
+description = "Verifiable research data availability on Ethereum EIP-4844 blobs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Ethereum Protocol Research Group" }
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+ignore = ["EXE001"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]

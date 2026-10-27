@@ -36,12 +36,18 @@ jobs:
           pip install -r requirements.txt
 
       - name: Generate Synthetic Academic Datasets
+        env:
+          PYTHONPATH: .
         run: python python/generate_synthetic_data.py
 
       - name: Run Benchmark Experiment Suite
+        env:
+          PYTHONPATH: .
         run: python python/experiments.py
 
       - name: Generate Benchmark Figures
+        env:
+          PYTHONPATH: .
         run: python python/plot_results.py
 
       - name: Run On-Chain Gas Benchmark

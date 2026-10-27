@@ -16,6 +16,7 @@ Outputs structured CSV files into `benchmarks/`.
 
 import math
 import os
+import sys
 import time
 from typing import Any
 
@@ -23,27 +24,52 @@ import numpy as np
 import pandas as pd
 import zstandard as zstd
 
-from .canonical import deserialize_record_stream, serialize_record_stream
-from .commitments import (
-    MerkleTree,
-    keccak256,
-    verify_proof,
-    verify_range_proof,
-)
-from .decoder import decode_dataset
-from .encoder import (
-    BYTES_PER_BLOB,
-    HEADER_SIZE,
-    USABLE_BYTES_FE31,
-    USABLE_BYTES_FE254,
-    encode_dataset,
-)
-from .generate_synthetic_data import (
-    generate_academic_paper_metadata,
-    generate_climate_timeseries,
-    generate_genomics_benchmark,
-    generate_ml_training_trace,
-)
+# Ensure repository root is in sys.path when run directly as a script
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    from python.canonical import deserialize_record_stream, serialize_record_stream
+    from python.commitments import (
+        MerkleTree,
+        keccak256,
+        verify_proof,
+        verify_range_proof,
+    )
+    from python.decoder import decode_dataset
+    from python.encoder import (
+        BYTES_PER_BLOB,
+        HEADER_SIZE,
+        USABLE_BYTES_FE31,
+        USABLE_BYTES_FE254,
+        encode_dataset,
+    )
+    from python.generate_synthetic_data import (
+        generate_academic_paper_metadata,
+        generate_climate_timeseries,
+        generate_genomics_benchmark,
+        generate_ml_training_trace,
+    )
+else:
+    from .canonical import deserialize_record_stream, serialize_record_stream
+    from .commitments import (
+        MerkleTree,
+        keccak256,
+        verify_proof,
+        verify_range_proof,
+    )
+    from .decoder import decode_dataset
+    from .encoder import (
+        BYTES_PER_BLOB,
+        HEADER_SIZE,
+        USABLE_BYTES_FE31,
+        USABLE_BYTES_FE254,
+        encode_dataset,
+    )
+    from .generate_synthetic_data import (
+        generate_academic_paper_metadata,
+        generate_climate_timeseries,
+        generate_genomics_benchmark,
+        generate_ml_training_trace,
+    )
 
 # -----------------------------------------------------------------------------
 # Pricing and Economic Assumptions (Documented for academic rigor)
