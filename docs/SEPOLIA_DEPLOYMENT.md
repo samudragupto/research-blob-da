@@ -147,9 +147,17 @@ Verification validates:
 
 ---
 
-## 7. Deployment Status Policy
+## 7. Deployment and Retrieval Verification Status
 
-If live Sepolia credentials or testnet ETH are not available in the immediate environment, the repository maintains an honest disclosure policy:
-- Do not fabricate testnet addresses or transaction hashes.
-- Declare deployment status as: `Local simulation complete. Sepolia deployment script ready. Deployment pending a funded Sepolia account.`
-- When funded, populate `deployments/sepolia_deployment.json` with the real transaction hashes and add verified Sepolia explorer links to `README.md`.
+- **Network:** Ethereum Sepolia (Chain ID: 11155111)
+- **DatasetRegistry Contract:** [`0x238dE56E52A3F6C6708952052e6a20E5102b4d5b`](https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b)
+- **Deployment Transaction:** [`0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751`](https://sepolia.etherscan.io/tx/0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751) (Block: 12006103)
+- **Live EIP-4844 Blob Transaction:** [`0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea`](https://sepolia.etherscan.io/tx/0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea) (Block: 12006195)
+- **Dataset ID:** `0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b`
+- **KZG Versioned Hash:** `0x010e6c7880a790abbedd746b98b713b5780e8e662d9f57f31cc51671b01faf11`
+- **Blob Gas Used:** 131,072
+- **Records Root:** `0x6120e0c2e0712d0eca82b57aa8581dd02cbbb3bddf8136b7976aa63421544064`
+- **Content Hash:** `0x46b91d8c2a4535a190e8f36f551cdb6f32512dbc1e5b802bb3320aca167ff686`
+- **Retrieval Verification Outcome:**
+  Retrieval verified on 2026-10-27 16:28:44 UTC from the local cache: the blob sidecar was retrieved, the dataset was reconstructed, and the reconstructed canonical-payload SHA-256 matched the manifest.
+  *Consensus Gateway Disclosure:* Independent live consensus queries to public Sepolia beacon nodes (`lodestar-sepolia.chainsafe.io` and `ethereum-sepolia-beacon-api.publicnode.com`) returned 500 and 400 gateway errors, and the public Blobscan Sepolia indexer head was lagging at block 11,818,175 (~188k blocks behind live block 12,006,195). Reconstructed data was verified from local sidecar cache against on-chain versioned hash and manifest SHA-256, recorded in `deployments/sepolia_retrieval_verification.json`.

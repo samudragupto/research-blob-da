@@ -37,7 +37,7 @@ All benchmarks were produced using committed datasets (four synthetic benchmarks
 ### Finding 1: Uncompressed Baselines vs. Compressed Posting Costs
 - **Theoretical Uncompressed Baseline (Table A):** A 1.0 MiB raw payload requires $\lceil 1,048,576 / 126,945 \rceil = 9\text{ blobs}$, costing $\$27.24\text{ USD}$ in blobs versus $\$755.92\text{ USD}$ in standard calldata before application of the EIP-7623 floor—a **27.8x cost reduction**.
 - **Measured Compressed Results (Table B):** In real workflows, datasets are compressed prior to packing. A synthetic ML training trace of 1,056.1 KiB ($1,081,484$ bytes) compresses $6.04\text{x}$ with Zstandard level 3 down to $174.9\text{ KiB}$ ($179,112$ bytes). This compressed stream requires only $\lceil 179,112 / 126,945 \rceil = \mathbf{2\text{ blobs}}$, reducing blob cost to $\$10.71\text{ USD}$ and standard calldata cost before the EIP-7623 floor to $\$129.91\text{ USD}$ (a **12.1x saving**).
-- **Real Academic Metadata:** The 500-record OpenAlex dataset (committed source file $264,057\text{ bytes}$ / $257.9\text{ KiB}$, canonical payload $212,517\text{ bytes}$ / $207.5\text{ KiB}$) compresses $4.13\text{x}$ to $50.3\text{ KiB}$ and fits within a single blob, costing $\$8.35\text{ USD}$.
+- **Real Academic Metadata:** The 500-record OpenAlex dataset (committed source file $264,057\text{ bytes}$ / $257.9\text{ KiB}$, canonical payload $212,517\text{ bytes}$ / $207.5\text{ KiB}$) compresses $4.13\text{x}$ to $50.3\text{ KiB}$ and fits within a single blob, costing $\$8.35\text{ USD}$ with encoding latency of $11.7\text{ ms} \pm 0.2\text{ ms}$ ($N=10$).
 
 ### Finding 2: Merkle Range Proofs Cut Batch Audit Gas by 73.2%
 For batch verification of contiguous measurements (e.g., verifying 8 consecutive training epochs), verifying independent Merkle proofs requires $8 \times D$ Keccak-256 operations. In `DatasetRegistry.sol`, our subtree range proof implementation (`verifyRangeProof`) reduces the verification gas for 8 leaves in a 4,096-record tree from $97,200\text{ gas}$ down to $26,050\text{ gas}$—a **73.2% reduction**.
@@ -73,5 +73,5 @@ Honest research requires stating constraints clearly:
 
 - Repository: `https://github.com/samudragupto/research-blob-da`
 - Documentation & Paper: `https://github.com/samudragupto/research-blob-da/blob/main/docs/RESEARCH.md`
-- Sepolia Contract (Verified): `[PENDING_SEPOLIA_DEPLOYMENT]`
-- Example Blob Transaction: `[PENDING_SEPOLIA_BLOB_TX]`
+- Sepolia Contract: `https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b`
+- Example Blob Transaction: `https://sepolia.etherscan.io/tx/0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea`

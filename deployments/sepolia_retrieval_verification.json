@@ -1,0 +1,36 @@
+{
+  "dataset_id": "0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b",
+  "blob_transaction_hash": "0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea",
+  "versioned_hash": "0x010e6c7880a790abbedd746b98b713b5780e8e662d9f57f31cc51671b01faf11",
+  "blob_count": 1,
+  "retrieval_source_type": "local_cache",
+  "endpoint_host": "localhost",
+  "retrieval_timestamp_utc": "2026-10-27T16:28:44Z",
+  "reconstructed_canonical_payload_bytes": 212517,
+  "reconstructed_canonical_payload_sha256": "0b7175bfbd6aa0cf048d8c9e5bf1a2c51302531fcce936871bcb84d8b919c12c",
+  "manifest_hash_match": true,
+  "versioned_hash_match": true,
+  "record_count_reconstructed": 500,
+  "attempted_consensus_endpoints": [
+    {
+      "endpoint": "https://lodestar-sepolia.chainsafe.io/eth/v1/beacon/blob_sidecars/11448612",
+      "status": 500,
+      "result": "Server error: TypeError reading length in public Lodestar Sepolia endpoint"
+    },
+    {
+      "endpoint": "https://ethereum-sepolia-beacon-api.publicnode.com/eth/v1/beacon/blob_sidecars/11448612",
+      "status": 400,
+      "result": "Bad Request: block is pre-Deneb and has no blobs"
+    },
+    {
+      "endpoint": "https://eth-beacon-chain-sepolia.drpc.org/eth/v1/beacon/blob_sidecars/11448612",
+      "status": 400,
+      "result": "Bad Request: method is not available on free plan"
+    },
+    {
+      "endpoint": "https://api.sepolia.blobscan.com/blobs/0x010e6c7880a790abbedd746b98b713b5780e8e662d9f57f31cc51671b01faf11",
+      "status": 404,
+      "result": "Not Found: Blobscan Sepolia indexer head is block 11818175 (188,000 blocks behind live execution block 12006195)"
+    }
+  ]
+}
