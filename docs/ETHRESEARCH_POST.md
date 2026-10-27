@@ -72,10 +72,12 @@ Honest research requires stating constraints clearly:
 ## Links and Codebase
 
 - Repository: `https://github.com/samudragupto/research-blob-da`
+- Release v0.1.0: `https://github.com/samudragupto/research-blob-da/releases/tag/v0.1.0`
 - Documentation & Paper: `https://github.com/samudragupto/research-blob-da/blob/main/docs/RESEARCH.md`
 - Sepolia Contract: `https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b#code` (Verified)
 - Deployment Transaction: `https://sepolia.etherscan.io/tx/0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751`
 - Example Blob Transaction: `https://sepolia.etherscan.io/tx/0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea`
 - Dataset ID: `0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b`
 - KZG Versioned Hash: `0x010e6c7880a790abbedd746b98b713b5780e8e662d9f57f31cc51671b01faf11`
+- Local Reconstruction Verification: Local reconstruction was verified on 2026-10-27 at 16:28:44 UTC from the locally retained blob against the on-chain versioned hash and manifest SHA-256 (`deployments/sepolia_retrieval_verification.json`).
 - Deployment Record: [deployments/sepolia_deployment.json](deployments/sepolia_deployment.json)

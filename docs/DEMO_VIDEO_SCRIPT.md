@@ -169,4 +169,4 @@ head -n 25 benchmarks/generated_tables.md
 
 **Visual:** Display `docs/SEPOLIA_DEPLOYMENT.md` or repository homepage.  
 **Spoken Narration:**
-> "Finally, the fundamental limitation: consensus clients prune blob sidecars after approximately 4096 epochs, or 18.2 days. Blobs provide temporary decentralized data availability, not permanent storage. Datasets must be archived off-chain or indexed within this window. The codebase, Foundry contracts, and reproduction benchmarks are fully open source on GitHub. Thank you."
+> "On Sepolia, our DatasetRegistry is verified at 0x238dE56E52A3F6C6708952052e6a20E5102b4d5b, with live blob transactions binding KZG versioned hashes and local reconstruction verified. Finally, the fundamental limitation: consensus clients prune blob sidecars after approximately 4096 epochs, or 18.2 days. Blobs provide temporary decentralized data availability, not permanent storage. Datasets must be archived off-chain or indexed within this window. The codebase, Foundry contracts, and reproduction benchmarks are fully open source on GitHub. Thank you."
