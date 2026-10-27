@@ -1,0 +1,18 @@
+{
+  "name": "research-blob-da",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Research Blob DA root workspace",
+  "scripts": {
+    "post-blob": "tsx frontend-or-cli/ts/src/blob_tx.ts"
+  },
+  "dependencies": {
+    "c-kzg": "^4.1.0",
+    "viem": "^2.21.54"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.3.3"
+  }
+}

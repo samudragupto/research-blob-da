@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "records_root": "0x6120e0c2e0712d0eca82b57aa8581dd02cbbb3bddf8136b7976aa63421544064",
+  "content_hash": "0x46b91d8c2a4535a190e8f36f551cdb6f32512dbc1e5b802bb3320aca167ff686",
+  "record_count": 500,
+  "raw_size": 212517,
+  "encoded_size": 51479,
+  "codec": 1,
+  "layout": 0,
+  "packing": 0,
+  "blob_count": 1,
+  "blob_versioned_hashes": [
+    "0x012ab0d86dd61dd0209d40c2f3a260cfc817394623dfa1706ea76fa9e9c4dc2e"
+  ],
+  "metadata": {}
+}

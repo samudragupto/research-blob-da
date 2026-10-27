@@ -196,6 +196,13 @@ Because compressed research data is over 99.6% non-zero, the effective floor for
   - `CalldataSink`: [`0xd501D47b246438A18C8a0BFFCF10338CfBB661a2`](https://sepolia.etherscan.io/address/0xd501D47b246438A18C8a0BFFCF10338CfBB661a2) (Tx: [`0xdaa50cbc...`](https://sepolia.etherscan.io/tx/0xdaa50cbc1299870677cb392ea7cec09853c93eaab4e066b01ede2f369ae7155c))
   - `SstoreArchive`: [`0x9e1bE1BE26f6Dc22e9EfdCE3b5976E170b80EA9d`](https://sepolia.etherscan.io/address/0x9e1bE1BE26f6Dc22e9EfdCE3b5976E170b80EA9d) (Tx: [`0xa28e4774...`](https://sepolia.etherscan.io/tx/0xa28e47741560697f28d9ac8a78aafbdff95999707f985360832049debb20a14f))
   - `AnchorRegistry`: [`0x3E999efE07478E11aCDFc19a89f2e29547a69E4d`](https://sepolia.etherscan.io/address/0x3E999efE07478E11aCDFc19a89f2e29547a69E4d) (Tx: [`0x6668067d...`](https://sepolia.etherscan.io/tx/0x6668067dd1fe9f86cad3739865afd60a6c819cf6f59926f978597fc3bb941d0e))
+- **Live EIP-4844 Blob Transaction:**
+  - `Dataset ID`: `0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b`
+  - `Transaction Hash`: [`0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea`](https://sepolia.etherscan.io/tx/0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea)
+  - `Inclusion Block`: 12006195
+  - `KZG Versioned Hash`: `0x010e6c7880a790abbedd746b98b713b5780e8e662d9f57f31cc51671b01faf11`
+  - `Records`: 500 OpenAlex papers (Records Root: `0x6120e0c2...`, Content Hash: `0x46b91d8c...`)
+  - `Blob Gas Used`: 131,072
 - **Deployment Details:** Full artifact logs recorded in `deployments/sepolia_deployment.json`. Step-by-step instructions for broadcasting transactions and retrieving sidecars before the 4,096-epoch pruning deadline are provided in [docs/SEPOLIA_DEPLOYMENT.md](docs/SEPOLIA_DEPLOYMENT.md).
 
 ---

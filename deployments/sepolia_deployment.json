@@ -25,6 +25,23 @@
       "url": "https://sepolia.etherscan.io/address/0x3E999efE07478E11aCDFc19a89f2e29547a69E4d"
     }
   },
-  "blob_transactions": [],
-  "operational_notes": "Live Ethereum Sepolia deployment of DatasetRegistry and baseline benchmark contracts."
+  "blob_transactions": [
+    {
+      "dataset_id": "0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b",
+      "transaction_hash": "0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea",
+      "block_number": 12006195,
+      "blob_count": 1,
+      "blob_gas_used": 131072,
+      "gas_used": 801288,
+      "versioned_hashes": [
+        "0x010e6c7880a790abbedd746b98b713b5780e8e662d9f57f31cc51671b01faf11"
+      ],
+      "records_root": "0x6120e0c2e0712d0eca82b57aa8581dd02cbbb3bddf8136b7976aa63421544064",
+      "content_hash": "0x46b91d8c2a4535a190e8f36f551cdb6f32512dbc1e5b802bb3320aca167ff686",
+      "record_count": 500,
+      "status": "FINALIZED",
+      "etherscan_url": "https://sepolia.etherscan.io/tx/0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea"
+    }
+  ],
+  "operational_notes": "Live Ethereum Sepolia deployment of DatasetRegistry and baseline benchmark contracts, including broadcast of canonical 500-record OpenAlex dataset sidecar via EIP-4844 Type-3 transaction."
 }
