@@ -168,9 +168,9 @@ For a 1.0 MiB dataset ($S = 1,048,576$, $K = 9$, $\text{Gas}_{\text{exec}} = 448
 
 EIP-7623 proposes an execution-layer calldata floor to reduce maximum block sizes without penalizing compute-heavy transactions. The official specification defines:
 
-$$\text{tokens\_in\_calldata} = \text{zero\_bytes} \times 1 + \text{nonzero\_bytes} \times 4$$
-$$\text{Floor Gas} = 21,000 + 10 \times \text{tokens\_in\_calldata}$$
-$$\text{tx.gasUsed} = 21,000 + \max(\text{Standard Calldata Gas} + \text{execution\_gas\_used}, 10 \times \text{tokens\_in\_calldata})$$
+$$\text{Tokens} = (\text{Zero Bytes} \times 1) + (\text{Non-Zero Bytes} \times 4)$$
+$$\text{Floor Gas} = 21{,}000 + 10 \times \text{Tokens}$$
+$$\text{Gas Used} = 21{,}000 + \max(\text{Standard Calldata Gas} + \text{Execution Gas}, 10 \times \text{Tokens})$$
 
 For data-availability transactions with minimal execution gas:
 - **All-Zero Bytes:** Each zero byte costs $1\text{ token} \times 10 = 10\text{ gas/byte}$.

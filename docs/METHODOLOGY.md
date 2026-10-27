@@ -95,26 +95,26 @@ $$K = \left\lceil \frac{S}{126,945} \right\rceil$$
 1. **EIP-4844 Blob Cost:**
    Each blob consumes exactly 131,072 blob gas (governed by EIP-4844 fixed parameter `GAS_PER_BLOB = 2^17`). In addition, the registration transaction requires execution gas: 21,000 base transaction gas, plus contract state writes for the dataset manifest and versioned hashes ($168,000$ gas for the initial blob, plus $35,000$ gas per additional blob):
    $$\text{Gas}_{\text{exec}}(K) = 168,000 + (K - 1) \times 35,000$$
-   $$\text{Cost}_{\text{blob}}(K) = \left[ \text{Gas}_{\text{exec}}(K) \times P_{\text{base}} + (K \times 131,072) \times P_{\text{blob}} \right] \times \text{ETH\_USD} \times 10^{-9}$$
+   $$\text{Cost}_{\text{blob}}(K) = \left[ \text{Gas}_{\text{exec}}(K) \times P_{\text{base}} + (K \times 131,072) \times P_{\text{blob}} \right] \times \text{Price}_{\text{ETH}} \times 10^{-9}$$
 
 2. **Standard Calldata Cost:**
    Calldata meters zero bytes at 4 gas and non-zero bytes at 16 gas. Across empirical compressed payloads, non-zero bytes represent approximately 99.6% of the byte stream:
    $$\text{Gas}_{\text{calldata}}(S) = 21,000 + S \times 16\text{ gas}$$
-   $$\text{Cost}_{\text{calldata}}(S) = \text{Gas}_{\text{calldata}}(S) \times P_{\text{base}} \times \text{ETH\_USD} \times 10^{-9}$$
+   $$\text{Cost}_{\text{calldata}}(S) = \text{Gas}_{\text{calldata}}(S) \times P_{\text{base}} \times \text{Price}_{\text{ETH}} \times 10^{-9}$$
 
 3. **Theoretical SSTORE Extrapolation (Not Executable as a Single Transaction):**
    Storing $S$ bytes requires $\lceil S / 32 \rceil$ 32-byte storage slots. In EVM state, allocating an uninitialized slot (`SSTORE` from zero to non-zero) costs 20,000 gas, plus 2,100 gas for cold account/slot access:
    $$\text{Gas}_{\text{sstore}}(S) = 21,000 + \left\lceil \frac{S}{32} \right\rceil \times 22,100\text{ gas}$$
-   $$\text{Cost}_{\text{sstore}}(S) = \text{Gas}_{\text{sstore}}(S) \times P_{\text{base}} \times \text{ETH\_USD} \times 10^{-9}$$
+   $$\text{Cost}_{\text{sstore}}(S) = \text{Gas}_{\text{sstore}}(S) \times P_{\text{base}} \times \text{Price}_{\text{ETH}} \times 10^{-9}$$
    *Multi-Block Impracticality:* At the standard 30,000,000 Ethereum block gas limit, publishing a 1.0 MiB payload requires $\lceil 724,193,800 / 30,000,000 \rceil = \mathbf{25\text{ full blocks}}$, proving that SSTORE is purely a theoretical cost reference point, not a practical data-posting mechanism.
 
 4. **Post-Pectra Calldata Floor Sensitivity (Official EIP-7623):**
    Under official EIP-7623 specifications:
-   $$\text{tokens\_in\_calldata} = \text{zero\_bytes} \times 1 + \text{nonzero\_bytes} \times 4$$
-   $$\text{Standard Calldata Gas} = 4 \times \text{tokens\_in\_calldata}$$
-   $$\text{Floor Gas} = 21,000 + 10 \times \text{tokens\_in\_calldata}$$
-   $$\text{tx.gasUsed} = 21,000 + \max(\text{Standard Calldata Gas} + \text{execution\_gas\_used}, 10 \times \text{tokens\_in\_calldata})$$
-   For data-availability payloads where $\text{execution\_gas\_used}$ is minimal, the floor applies. For non-zero bytes (compressed data), the effective floor is $40\text{ gas per byte}$ (plus 21,000 base). For zero bytes, it is $10\text{ gas per byte}$. The commonly cited "32 gas per byte" was an illustrative heuristic assuming a 25% zero-byte mixture.
+   $$\text{Tokens} = (\text{Zero Bytes} \times 1) + (\text{Non-Zero Bytes} \times 4)$$
+   $$\text{Standard Calldata Gas} = 4 \times \text{Tokens}$$
+   $$\text{Floor Gas} = 21{,}000 + 10 \times \text{Tokens}$$
+   $$\text{Gas Used} = 21{,}000 + \max(\text{Standard Calldata Gas} + \text{Execution Gas}, 10 \times \text{Tokens})$$
+   For data-availability payloads where $\text{Execution Gas}$ is minimal, the floor applies. For non-zero bytes (compressed data), the effective floor is $40\text{ gas per byte}$ (plus 21,000 base). For zero bytes, it is $10\text{ gas per byte}$. The commonly cited "32 gas per byte" was an illustrative heuristic assuming a 25% zero-byte mixture.
 
 5. **Fee Sensitivity and Break-Even Blob Fee:**
    The economic break-even blob base fee ($P_{\text{blob}}^{\text{break-even}}$) where blob posting cost equals standard calldata cost is derived by setting $\text{Cost}_{\text{blob}} = \text{Cost}_{\text{calldata}}$:

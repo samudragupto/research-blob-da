@@ -28,7 +28,7 @@ While `FE254` increases raw byte density by 2.4%, it requires bit-shifting every
 
 A common misconception among developers new to EIP-4844 is that smart contracts can inspect blob data directly. In the EVM, execution contracts only have access to the `BLOBHASH` opcode (`0x49`), which takes an index and returns the 32-byte versioned hash:
 
-$$\text{versioned\_hash} = \mathtt{0x01} \parallel \text{sha256}(\text{KZG\_commitment})[1:]$$
+$$\text{VersionedHash} = \mathtt{0x01} \parallel \text{sha256}(\text{KZG Commitment})[1:]$$
 
 The blob body travels exclusively through consensus-layer peer-to-peer sidecars and is never placed into execution-layer state or memory.
 

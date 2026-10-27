@@ -20,10 +20,10 @@
 
 ### Issue 2: Verification and Refinement of EIP-7623
 - **Audit Findings:** Evaluated official EIP-7623 specification by Toni Wahrstätter and Vitalik Buterin. The specification defines:
-  $\text{tokens} = \text{zero\_bytes} \times 1 + \text{nonzero\_bytes} \times 4$,
-  $\text{standard\_calldata\_gas} = 4 \times \text{tokens}$,
-  $\text{floor\_calldata\_gas} = 10 \times \text{tokens}$,
-  $\text{tx.gasUsed} = 21,000 + \max(\text{standard\_calldata} + \text{execution\_gas\_used}, 10 \times \text{tokens})$.
+  $\text{Tokens} = (\text{Zero Bytes} \times 1) + (\text{Non-Zero Bytes} \times 4)$,
+  $\text{Standard Calldata Gas} = 4 \times \text{Tokens}$,
+  $\text{Floor Gas} = 21{,}000 + 10 \times \text{Tokens}$,
+  $\text{tx.gasUsed} = 21{,}000 + \max(\text{Standard Calldata Gas} + \text{Execution Gas}, 10 \times \text{Tokens})$.
   For data-availability transactions (where non-zero bytes exceed 99.6%), the effective floor is $\approx 39.88\text{ gas/byte}$, not a universal constant of 32 gas/byte.
 - **Action Taken:**
   - Implemented exact formula in `python/cost_model.py:calculate_eip7623_calldata_gas`.

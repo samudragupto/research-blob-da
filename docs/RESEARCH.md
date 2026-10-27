@@ -55,7 +55,7 @@ $$r = 52435875175126190479447740508185965837690552500527637822603658699938581184
 A field element is represented as a 32-byte big-endian integer. Because $r < 2^{256}$ (specifically $2^{254.85} < r < 2^{255}$), raw arbitrary 32-byte words cannot be directly inserted into blobs without risking invalid field element errors during KZG commitment verification.
 
 Consensus nodes propagate blobs as sidecars alongside beacon blocks. Execution clients execute the transaction body, wherein the EVM can only access the 32-byte *versioned hash* of each blob:
-$$\text{versioned\_hash}(C) = 0x01 \parallel \text{SHA-256}(C)[1..32]$$
+$$\text{VersionedHash}(C) = 0x01 \parallel \text{SHA-256}(C)[1..32]$$
 The point evaluation precompile located at address `0x0a` permits verifying that a committed polynomial $p(x)$ evaluates to $y$ at point $z$ given a KZG proof $\pi$.
 
 ```mermaid
@@ -121,7 +121,7 @@ To allow sub-linear, zero-knowledge, or optimistic verification of individual re
    $$\text{Node}(L, R) = \text{keccak256}\left(0x01 \parallel L \parallel R\right)$$
    Domain separation ($0x00$ prefix for leaves, $0x01$ for intermediate nodes) prevents second-preimage attacks.
 2. **Position-Binding Proofs:** The index $i$ determines the bitwise trajectory (left vs. right child) at each tree level $d$:
-   $$\text{is\_right}_d = \left(\lfloor i / 2^d \rfloor \pmod 2 == 1\right)$$
+   $$\text{IsRight}_d = \left(\lfloor i / 2^d \rfloor \pmod 2 == 1\right)$$
    The EVM library `MerkleLib.sol` strictly enforces position-binding traversal, preventing an adversary from presenting a valid leaf at an arbitrary or shifted record position.
 3. **Contiguous Range Proofs:** For validating contiguous subsequences of records (e.g., training epochs 10 to 50), transmitting individual Merkle paths incurs $O(k \log N)$ calldata overhead. `MerkleLib.sol` implements contiguous range verification, wherein intermediate subtrees spanned by the range are evaluated directly in memory, requiring only the boundary sibling paths ($O(\log N)$).
 
@@ -422,14 +422,14 @@ However, academic dataset publishing differs fundamentally from L2 rollups in la
 
 EIP-7623 proposes an execution-layer calldata floor to reduce maximum execution block sizes without penalizing compute-heavy transactions [4]. The official specification establishes:
 
-$$\text{tokens\_in\_calldata} = \text{zero\_bytes} \times 1 + \text{nonzero\_bytes} \times 4$$
-$$\text{Standard Calldata Gas} = 4 \times \text{tokens\_in\_calldata}$$
-$$\text{Floor Gas} = 21,000 + 10 \times \text{tokens\_in\_calldata}$$
-$$\text{tx.gasUsed} = 21,000 + \max(\text{Standard Calldata Gas} + \text{execution\_gas\_used}, 10 \times \text{tokens\_in\_calldata})$$
+$$\text{Tokens} = (\text{Zero Bytes} \times 1) + (\text{Non-Zero Bytes} \times 4)$$
+$$\text{Standard Calldata Gas} = 4 \times \text{Tokens}$$
+$$\text{Floor Gas} = 21{,}000 + 10 \times \text{Tokens}$$
+$$\text{Gas Used} = 21{,}000 + \max(\text{Standard Calldata Gas} + \text{Execution Gas}, 10 \times \text{Tokens})$$
 
 For data-availability transactions with negligible EVM execution, the transaction hits the floor whenever:
 
-$$6 \times \text{tokens\_in\_calldata} > \text{execution\_gas\_used}$$
+$$6 \times \text{Tokens} > \text{Execution Gas}$$
 
 Under this floor:
 - Zero bytes cost $1\text{ token} \times 10 = 10\text{ gas per byte}$.
