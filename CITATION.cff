@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software or benchmark data in your research, please cite it as below."
+title: "research-blob-da: Verifiable Data Availability for Scientific Research via EIP-4844 Blobs"
+authors:
+  - family-names: "Nag"
+    given-names: "Arrhat"
+    alias: "samudragupto"
+version: "0.1.0"
+date-released: "2026-10-27"
+license: "MIT"
+repository-code: "https://github.com/samudragupto/research-blob-da"
+url: "https://github.com/samudragupto/research-blob-da"
+abstract: "An empirical evaluation and open-source protocol prototype establishing EIP-4844 blobs as a cheap, verifiable data-availability primitive for scientific datasets, machine learning training traces, and academic archives on Ethereum."
+keywords:
+  - "ethereum"
+  - "eip-4844"
+  - "data-availability"
+  - "blobs"
+  - "kzg-commitments"
+  - "reproducibility"
+  - "open-science"

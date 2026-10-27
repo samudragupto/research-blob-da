@@ -12,18 +12,40 @@
 
 ---
 
+## For Conference Reviewers
+
+This repository contains the complete open-source prototype, Foundry contracts, formal cost models, and empirical benchmark suite for the research paper *research-blob-da*.
+
+- **Headline Findings (Defensible & Verified):**
+  1. **27.8x Theoretical Cost Reduction vs. Standard Calldata:** Under documented economic assumptions (15 gwei execution base fee, 2 gwei blob base fee, $3,000 USD/ETH), posting a 1.0 MiB theoretical uncompressed dataset costs **$27.24** on EIP-4844 blobs versus **$755.92** on standard calldata (16 gas/byte).
+  2. **12.1x Measured Compressed Posting Cost on Real ML Telemetry:** A 1,056 KiB neural network training trace compresses 6.04x via Zstandard level 3 to 174.9 KiB, requiring only **2 blobs** ($10.71) compared to $129.91 in calldata.
+  3. **73.2% EVM Gas Reduction for Batch Audits:** On-chain contiguous subtree range proofs (`MerkleLib.sol`) reduce verification gas for 8 consecutive records from 97,200 gas down to 26,050 gas.
+- **One-Command Reproduction:**
+  ```bash
+  forge test && pytest -v tests && python python/experiments.py && python python/plot_results.py && python python/check_consistency.py
+  ```
+- **Documentation & Review Links:**
+  - Academic Paper: [docs/RESEARCH.md](docs/RESEARCH.md)
+  - Experimental Methodology: [docs/METHODOLOGY.md](docs/METHODOLOGY.md)
+  - Implementation Takeaways: [docs/ENGINEERING_LESSONS.md](docs/ENGINEERING_LESSONS.md)
+  - Two-Minute Demonstration Script: [docs/DEMO_VIDEO_SCRIPT.md](docs/DEMO_VIDEO_SCRIPT.md)
+  - Ethresearch Discussion Draft: [docs/ETHRESEARCH_POST.md](docs/ETHRESEARCH_POST.md)
+  - Generated Benchmark CSVs: [benchmarks/](benchmarks/)
+- **Sepolia Testnet Status:** Local simulation complete. Sepolia deployment script ready. Deployment pending a funded Sepolia account (see [docs/SEPOLIA_DEPLOYMENT.md](docs/SEPOLIA_DEPLOYMENT.md)).
+
+---
+
 ## 1. Executive Summary
 
-Empirical research in machine learning, computational biology, climate science, and distributed systems faces a severe reproducibility crisis. Centralized cloud storage links decay over time, while posting primary empirical artifacts to immutable blockchain storage has historically been economically impossible (storing a 1 MiB experimental log in Ethereum contract storage costs over **$32,500**; calldata costs between **$755** and **$1,888**).
+Empirical research in machine learning, computational biology, climate science, and distributed systems faces a severe reproducibility crisis. Centralized cloud storage links decay over time, while posting primary empirical artifacts to immutable blockchain storage has historically been economically impossible.
 
-**research-blob-da** introduces an open-source protocol and reference implementation repurposing Ethereum's **EIP-4844 ephemeral data blobs** as a cheap, high-throughput, and cryptographically verifiable primitive for empirical research artifacts. 
+**research-blob-da** introduces an open-source protocol and reference implementation repurposing Ethereum's **EIP-4844 ephemeral data blobs** as a cheap, high-throughput, and cryptographically verifiable primitive for empirical research artifacts.
 
-### Key Findings
-- **27.8x to 37.9x Cost Reduction vs. Standard Calldata:** Posting a 1.0 MiB dataset costs **$27.24** on EIP-4844 blobs compared to **$755.92** on standard calldata.
-- **69.3x Cost Reduction vs. EIP-7623 Calldata Floors:** Under pending EIP-7623 execution floors ($32\text{ gas/byte}$), 1.0 MiB costs **$1,888.38** via calldata vs. **$27.24** via blobs.
-- **High-Efficacy Compression:** Zstandard encoding reduces tabular scientific telemetry and training traces by **6.04x to 11.13x**, packing multi-megabyte datasets into 1 to 4 blobs.
-- **Contiguous On-Chain Range Proofs:** Sub-sequence verification in `MerkleLib.sol` achieves up to **89.1% gas savings** over independent Merkle proofs.
-- **Optimistic Property Verification:** Researchers can submit statistical property claims (e.g., loss bounds), which any challenger can refute on-chain in a single transaction for under **350,000 gas** using our zero-copy JSON parser `JsonFieldLib.sol`.
+### Key Contributions
+- **Canonical Serialization & Packing:** Deterministic RFC 8785 JSON streaming with conservative 31-byte field element modulus packing (`FE31`), guaranteeing that all 4,096 elements remain strictly below the BLS12-381 scalar field modulus.
+- **On-Chain Dataset Registry:** `DatasetRegistry.sol` anchors records Merkle roots, content hashes, and versioned hashes read directly from the Cancun `BLOBHASH` opcode (`0x49`).
+- **Optimistic Property Verification:** Researchers post statistical claims (e.g., loss bounds, sensor ranges); challengers can refute invalid claims on-chain in a single transaction using our zero-copy assembly parser `JsonFieldLib.sol`.
+- **Dual-Horizon Preservation:** Reconciles the consensus layer's 4,096-epoch (~18.2 day) blob pruning window with long-term academic preservation by defining an off-chain bridge protocol for archival nodes.
 
 ---
 
@@ -52,7 +74,7 @@ flowchart TB
     end
 
     Blobs -->|"Type-3 Transaction Broadcast"| Sidecars
-    Commitments -->|"openDataset(datasetId, recordsRoot, ...)"| Registry
+    Commitments -->|"openDataset(salt, params, ...)"| Registry
     Sidecars <-->|"BLOBHASH Opcode (0x49)"| Registry
     Sidecars -->|"Ingest during 18.2-day window"| ArchiveNodes
     Registry -.->|"Immutable Commitments & Claims"| ArchiveNodes
@@ -62,171 +84,136 @@ flowchart TB
 
 ## 3. Empirical Cost and Performance Benchmarks
 
-### 3.1 Economic Cost Comparison
+All benchmark figures below are generated directly from executed code and committed datasets via `python/experiments.py`.
 
-| Dataset Size | Blobs Needed | EIP-4844 Blobs | Calldata | EIP-7623 Calldata | SSTORE (L1 State) | Blob vs. Calldata Savings |
-|:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **128 KiB** | 2 | **$10.71** | $95.32 | $236.87 | $4,070.73 | **8.9x** |
-| **1.0 MiB** | 9 | **$27.24** | $755.92 | $1,888.38 | $32,559.23 | **27.8x** |
-| **5.0 MiB** | 42 | **$105.17** | $3,775.82 | $9,438.13 | $162,792.37 | **35.9x** |
-| **20.0 MiB** | 166 | **$397.98** | $15,100.44 | $37,749.68 | $651,166.64 | **37.9x** |
+### 3.1 Table A: Theoretical Uncompressed Cost Baseline
 
-*Assumptions: ETH = $3,000 USD, Base Fee = 15.0 gwei, Blob Fee = 2.0 gwei.*
+> [!NOTE]
+> **Assumptions:** Uncompressed raw data; usable payload per blob is strictly 126,945 bytes (4096 field elements * 31 bytes minus 31-byte FE0 header). Execution base fee: 15 gwei; blob base fee: 2 gwei; ETH price: $3,000 USD.
+>
+> **SSTORE Caution:** SSTORE figures represent a theoretical mathematical extrapolation (22,100 gas per 32-byte slot) and are **not executable as a single transaction**. At the 30M block gas limit, publishing 1.0 MiB via SSTORE would require at least 25 full Ethereum blocks.
 
-### 3.2 Dataset Compression Efficacy
+| Dataset Size | Raw Bytes | Blobs Needed | Blob Cost (USD) | Standard Calldata (USD) | Blob Savings vs Calldata | Theoretical SSTORE (USD)* | Min Blocks (SSTORE at 30M Gas) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **0.125 MiB** | 131,072 | 2 | $10.7079 | $95.32 | **8.9x** | $4,074.42 | 4 blocks |
+| **1.0 MiB** | 1,048,576 | 9 | $27.2379 | $755.92 | **27.8x** | $32,588.72 | 25 blocks |
+| **5.0 MiB** | 5,242,880 | 42 | $105.1651 | $3,775.82 | **35.9x** | $162,939.83 | 121 blocks |
+| **20.0 MiB** | 20,971,520 | 166 | $397.9827 | $15,100.44 | **37.9x** | $651,756.47 | 483 blocks |
 
-| Domain | Records | Raw Size | Compressed | Ratio | Blobs | Encoding Time | Throughput |
-|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **ML Training Trace** | 10,000 | 1,056 KiB | 175 KiB | **6.04x** | 2 | **209 ms** | **4.94 MiB/s** |
-| **Climate Station Data** | 20,000 | 3,051 KiB | 403 KiB | **7.57x** | 4 | **430 ms** | **6.94 MiB/s** |
-| **Genomics Variants** | 8,000 | 946 KiB | 163 KiB | **5.80x** | 2 | **148 ms** | **6.24 MiB/s** |
-| **Academic Metadata** | 5,000 | 825 KiB | 74 KiB | **11.13x** | 1 | **105 ms** | **7.71 MiB/s** |
+### 3.2 Table B: Measured Compressed Dataset Results
 
-### 3.3 On-Chain Verification Gas Costs
+> [!NOTE]
+> **Assumptions:** Canonical record serialization, Zstandard level 3 compression, and 31-byte field element packing (FE31). Blob counts and monetary costs reflect the actual compressed payloads.
 
-| Tree Depth | Records | Single Proof Gas | Contiguous Range Gas (8 Leaves) | Gas Savings |
-|:---:|:---:|:---:|:---:|:---:|
-| **4** | 16 | 6,200 | 7,850 | **84.2%** |
-| **8** | 256 | 9,200 | 9,650 | **86.9%** |
-| **12** | 4,096 | 12,200 | 11,450 | **88.3%** |
-| **16** | 65,536 | 15,200 | 13,250 | **89.1%** |
+| Dataset Name | Type | Records | Raw Size | Compressed Size | Ratio | Blobs | Blob Cost (USD) | Calldata Cost (USD) | Savings | Encoding Time (Mean ± Std) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **ML Training Trace (JSON)** | Synthetic Dataset | 10,000 | 1056.1 KiB | 174.9 KiB | 6.04x | **2** | $10.7079 | $129.91 | **12.1x** | 225.5 ms ± 6.9 ms |
+| **Climate Station Data (CSV)** | Synthetic Dataset | 20,000 | 3051.4 KiB | 403.1 KiB | 7.57x | **4** | $15.4307 | $298.14 | **19.3x** | 440.4 ms ± 13.9 ms |
+| **Genomics Variants** | Synthetic Dataset | 8,000 | 946.0 KiB | 163.0 KiB | 5.80x | **2** | $10.7079 | $121.14 | **11.3x** | 143.7 ms ± 3.1 ms |
+| **Academic Metadata (JSON)** | Synthetic Dataset | 5,000 | 825.5 KiB | 74.1 KiB | 11.13x | **1** | $8.3464 | $55.61 | **6.7x** | 103.8 ms ± 1.6 ms |
+| **OpenAlex Academic Works** | Real Dataset | 500 | 207.5 KiB | 50.3 KiB | 4.13x | **1** | $8.3464 | $38.01 | **4.6x** | 11.5 ms ± 0.1 ms |
 
----
+### 3.3 Explanatory Note on Table A vs Table B Blob Counts
 
-## 4. Repository Structure
+Reviewers comparing Table A and Table B will note that a **1.0 MiB theoretical uncompressed dataset requires 9 blobs**, whereas the **ML Training Trace (1,056 KiB raw) requires only 2 blobs**.
 
-```text
-research-blob-da/
-├── contracts/                     # Solidity 0.8.24 smart contracts (Cancun target)
-│   ├── DatasetRegistry.sol        # Core registry with multi-tx aggregation and citations
-│   ├── interfaces/
-│   │   └── IDatasetRegistry.sol   # Full interface, structs, events, errors
-│   ├── libraries/
-│   │   ├── BlobLib.sol            # Cancun blobhash reader and KZG precompile wrapper
-│   │   ├── JsonFieldLib.sol       # Zero-copy numeric JSON parser for EVM calldata
-│   │   └── MerkleLib.sol          # Position-binding single and range Merkle proofs
-│   └── baselines/                 # Empirical baseline contracts
-│       ├── CalldataSink.sol       # Raw calldata ingestion baseline
-│       ├── SstoreArchive.sol      # SSTORE contract storage baseline
-│       └── AnchorRegistry.sol     # Off-chain pointer (IPFS/URI) baseline
-├── script/                        # Foundry deployment and bench scripts
-│   ├── Deploy.s.sol               # Sepolia / mainnet deployment script
-│   ├── PostBlobDataset.s.sol      # Type-3 transaction broadcaster script
-│   └── BaselineBench.s.sol        # On-chain gas measurement script
-├── test/                          # Foundry test suite (31 tests, 100% pass)
-│   ├── DatasetRegistry.t.sol      # Full registry lifecycle tests
-│   ├── MerkleLib.t.sol            # Merkle inclusion, depth, and range tests
-│   ├── JsonFieldLib.t.sol         # JSON parser fuzz and edge-case tests
-│   ├── Baselines.t.sol            # Gas baseline tests
-│   └── Invariants.t.sol           # Invariant fuzz testing (16,384 calls across 256 runs)
-├── python/                        # Production Python pipeline (Python 3.11+)
-│   ├── canonical.py               # RFC 8785 JSON canonicalization and stream framing
-│   ├── commitments.py             # Binary Merkle trees, range proofs, property summarizer
-│   ├── encoder.py                 # Zstd compression, FE31/FE254 packing, blob headers
-│   ├── decoder.py                 # Sidecar parsing, reassembly, cryptographic verification
-│   ├── retriever.py               # Dual-backend (local cache with pruning & Beacon REST)
-│   ├── generate_synthetic_data.py # Deterministic generation of 4 scientific datasets
-│   ├── experiments.py             # 5 empirical benchmark experiment suites
-│   └── plot_results.py            # High-resolution vector PDF & PNG figure generation
-├── tests/                         # Pytest test suite (26 tests, 100% pass)
-│   ├── test_canonical.py          # RFC 8785 sorting and stream framing tests
-│   ├── test_commitments.py        # Position-binding Merkle proofs and property tests
-│   ├── test_encoder_decoder.py    # FE31/FE254 roundtrips, multi-blob, BLS modulus
-│   └── test_retriever.py          # Retrieval cache, pruning window simulation, errors
-├── frontend-or-cli/               # CLI and TypeScript tooling
-│   ├── rbda_cli.py                # Python CLI (encode, commit, verify, retrieve, claim, refute)
-│   └── ts/                        # TypeScript viem SDK for testnet blob broadcasting
-├── data/                          # Academic benchmark datasets
-├── benchmarks/                    # Benchmark CSV results and generated figures
-├── docs/                          # Comprehensive academic documentation
-│   ├── RESEARCH.md                # Full conference research paper
-│   ├── METHODOLOGY.md             # Experimental methodology and gas accounting
-│   ├── REPRODUCIBILITY.md         # Step-by-step reproduction guide
-│   └── figures/                   # Publication figures (Figure 1 through Figure 5)
-├── .github/workflows/             # CI/CD workflows
-│   ├── ci.yml                     # Full lint, build, test, and gas report
-│   ├── benchmarks.yml             # Automated benchmark runner and artifact upload
-│   ├── security.yml               # Slither static security analysis
-│   └── deploy-sepolia.yml         # Manual Sepolia deployment workflow
-├── foundry.toml                   # Foundry configuration (Cancun, via_ir=true)
-├── requirements.txt               # Python dependencies
-└── LICENSE                        # MIT License
-```
+This divergence is solely due to compression:
+1. **Theoretical Uncompressed Baseline (Table A):** Assumes zero compression. With usable body payload capacity of `126,945 bytes/blob` (4,096 elements * 31 bytes minus 31-byte header), posting 1,048,576 uncompressed bytes requires $\lceil 1,048,576 / 126,945 \rceil = \mathbf{9\text{ blobs}}$.
+2. **Measured Compressed Results (Table B):** The ML training telemetry contains recurring structured keys and floating-point coordinates that Zstandard compresses with a `6.04x` ratio, reducing 1,081,484 raw bytes to `179,112 compressed bytes`. Chunking into 126,945-byte payload slots yields $\lceil 179,112 / 126,945 \rceil = \mathbf{2\text{ blobs}}$.
 
 ---
 
-## 5. Quickstart Guide
+## 4. Blob Capacity, Transaction Limits, and Block Inclusion Times
 
-### 5.1 Installation
+Under Ethereum consensus rules, blob throughput is subject to target and maximum block limits. The table below models minimum transactions, burst blocks, and inclusion times across protocol eras.
+
+> [!IMPORTANT]
+> These figures represent theoretical best-case lower bounds assuming exclusive block occupancy. In production, blocks are shared with rollups and other blob market participants.
+
+| Dataset Size | Case Type | Blobs | Protocol Era | Min Txs | Burst Blocks | Burst Time (12s) | Target Blocks | Target Time (12s) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **128 KiB** | Theoretical Uncompressed | 2 | Cancun (EIP-4844) | 1 | 1 | 12s | 1 | 12s |
+| **1.0 MiB** | Theoretical Uncompressed | 9 | Cancun (EIP-4844) | 2 | 2 | 24s | 3 | 36s |
+| **1.0 MiB** | Theoretical Uncompressed | 9 | Pectra (EIP-7691) | 1 | 1 | 12s | 2 | 24s |
+| **1.0 MiB** | Theoretical Uncompressed | 9 | PeerDAS (EIP-7594 Projection) | 1 | 1 | 12s | 1 | 12s |
+| **5.0 MiB** | Theoretical Uncompressed | 42 | Cancun (EIP-4844) | 7 | 7 | 84s | 14 | 168s |
+| **5.0 MiB** | Theoretical Uncompressed | 42 | Pectra (EIP-7691) | 5 | 5 | 60s | 7 | 84s |
+| **20.0 MiB** | Theoretical Uncompressed | 166 | Cancun (EIP-4844) | 28 | 28 | 336s | 56 | 672s |
+| **1.0 MiB Raw (6x Zstd)** | Measured Compressed | 2 | Cancun (EIP-4844) | 1 | 1 | 12s | 1 | 12s |
+
+---
+
+## 5. Fee Sensitivity and Break-Even Analysis
+
+The cost advantage of blobs varies with execution base fees ($P_{\text{base}}$) and blob base fees ($P_{\text{blob}}$). Setting the blob posting cost equal to standard calldata cost yields the break-even blob base fee:
+
+$$P_{\text{blob}}^{\text{break-even}} = \frac{21,000 + 16 \times S - \text{Gas}_{\text{exec}}}{K \times 131,072} \times P_{\text{base}}$$
+
+For a 1.0 MiB dataset ($S = 1,048,576$, $K = 9$, $\text{Gas}_{\text{exec}} = 448,000$), the break-even coefficient is $\approx 13.86$.
+
+| Execution Base Fee | Blob Base Fee | Standard Calldata Cost | Blob Posting Cost | Savings Ratio | Operating Status |
+| :---: | :---: | :---: | :---: | :---: | :--- |
+| **15 gwei** | **1 gwei** | $755.92 | $23.70 | **31.90x** | Baseline (Normal Blob Market) |
+| **15 gwei** | **2 gwei** | $755.92 | $27.24 | **27.75x** | Documented Baseline |
+| **15 gwei** | **10 gwei** | $755.92 | $55.55 | **13.61x** | Moderate Congestion |
+| **15 gwei** | **50 gwei** | $755.92 | $197.11 | **3.84x** | High Congestion |
+| **15 gwei** | **100 gwei** | $755.92 | $374.05 | **2.02x** | Severe Congestion |
+| **15 gwei** | **200 gwei** | $755.92 | $727.95 | **1.04x** | Near Break-Even (207.9 gwei) |
+| **50 gwei** | **2 gwei** | $2,519.73 | $74.28 | **33.92x** | Elevated Execution Base Fee |
+| **50 gwei** | **100 gwei** | $2,519.73 | $421.09 | **5.98x** | Elevated Congestion |
+
+---
+
+## 6. Post-Pectra Calldata Floor Sensitivity (EIP-7623)
+
+EIP-7623 proposes an execution-layer calldata floor to reduce maximum block sizes without penalizing compute-heavy transactions. The official specification defines:
+
+$$\text{tokens\_in\_calldata} = \text{zero\_bytes} \times 1 + \text{nonzero\_bytes} \times 4$$
+$$\text{Floor Gas} = 21,000 + 10 \times \text{tokens\_in\_calldata}$$
+$$\text{tx.gasUsed} = 21,000 + \max(\text{Standard Calldata Gas} + \text{execution\_gas\_used}, 10 \times \text{tokens\_in\_calldata})$$
+
+For data-availability transactions with minimal execution gas:
+- **All-Zero Bytes:** Each zero byte costs $1\text{ token} \times 10 = 10\text{ gas/byte}$.
+- **All Non-Zero Bytes (Compressed Data):** Each non-zero byte costs $4\text{ tokens} \times 10 = 40\text{ gas/byte}$.
+- **Mixed Data:** A 50/50 mixture yields an effective floor of $25\text{ gas/byte}$.
+
+Because real compressed research data is over 99.6% non-zero, the effective floor for uncompressed calldata posting under EIP-7623 will be $\approx 39.88\text{ gas per byte}$, not the 32 gas/byte heuristic previously discussed. If enacted, post-Pectra calldata costs for pure DA will increase by 2.5x, further widening the economic advantage of blobs. Detailed vectors and calculations are in `benchmarks/calldata_eip7623_sensitivity.csv`.
+
+---
+
+## 7. Testnet Deployment Status
+
+- **Status:** Local simulation complete. Sepolia deployment script ready. Deployment pending a funded Sepolia account.
+- **Verification Guarantee:** No simulated or fabricated deployment addresses are included in this documentation. Complete step-by-step instructions for broadcasting transactions and retrieving sidecars before the 4,096-epoch pruning deadline are provided in [docs/SEPOLIA_DEPLOYMENT.md](docs/SEPOLIA_DEPLOYMENT.md).
+
+---
+
+## 8. Quickstart and Reproduction
 
 ```bash
 # Clone repository
 git clone https://github.com/samudragupto/research-blob-da.git
 cd research-blob-da
 
-# Setup Python virtual environment
+# Setup Python environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -r python/requirements.txt
 
-# Compile smart contracts
-forge build
-```
-
-### 5.2 Execute Test Suites
-
-```bash
-# Run Foundry tests (31 tests, fuzzing, invariants)
-forge test -v
-
-# Run Python tests (26 unit tests)
+# Run Foundry and Pytest test suites
+forge test
 pytest -v tests
-```
 
-### 5.3 CLI Demonstration
+# Regenerate benchmarks, figures, and verified tables
+python python/experiments.py
+python python/plot_results.py
 
-```bash
-# 1. Encode a 1.05 MiB ML training trace into 2 blobs with zstandard compression
-python frontend-or-cli/rbda_cli.py encode \
-  --input data/ml_training_trace.json \
-  --out-dir data/encoded_demo \
-  --cache
-
-# 2. Verify blob sidecars against manifest
-python frontend-or-cli/rbda_cli.py verify \
-  --manifest data/encoded_demo/manifest.json \
-  --blobs-dir data/encoded_demo
-
-# 3. Retrieve and reconstruct original dataset
-python frontend-or-cli/rbda_cli.py retrieve \
-  --manifest data/encoded_demo/manifest.json \
-  --out-file data/reconstructed.json
-
-# 4. Generate on-chain property claim
-python frontend-or-cli/rbda_cli.py claim \
-  --input data/ml_training_trace.json \
-  --key loss \
-  --scale 2
-
-# 5. Detect violation and generate refutation proof for false claim
-python frontend-or-cli/rbda_cli.py refute \
-  --input data/ml_training_trace.json \
-  --key loss \
-  --scale 2 \
-  --claimed-min 18 \
-  --claimed-max 200
+# Verify repository consistency and zero-emoji policy
+python python/check_consistency.py
 ```
 
 ---
 
-## 6. Academic Paper and Documentation
-
-- **[Full Research Paper](docs/RESEARCH.md):** Complete academic paper formatted for systems conferences.
-- **[Experimental Methodology](docs/METHODOLOGY.md):** Formal hardware, statistical models, and gas formulas.
-- **[Reproducibility Guide](docs/REPRODUCIBILITY.md):** Exact instructions for reproducing all results.
-
----
-
-## 7. License
+## 9. License
 
 This project is licensed under the [MIT License](LICENSE).
