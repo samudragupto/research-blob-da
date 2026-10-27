@@ -56,7 +56,7 @@ At standard execution base fee $P_{\text{base}} = 15\text{ gwei}$, the break-eve
 Honest research requires stating constraints clearly:
 
 1. **Ephemeral Retention Horizon:** Consensus clients prune blob sidecars after approximately 4,096 epochs ($\approx 18.2$ days). Blobs guarantee decentralized temporary data availability, not permanent storage. Datasets must be ingested, checked, and stored by independent indexers or archival nodes within this window.
-2. **Block and Transaction Blob Limits:** Under current Cancun rules (target 3, max 6 blobs per block/tx), any compressed dataset exceeding $761\text{ KiB}$ ($6 \times 126,945$ bytes) cannot be submitted in a single transaction. `DatasetRegistry.sol` supports multi-transaction assembly via `openDataset(...)` followed by `appendBlobs(...)` and `finalize(...)`.
+2. **Protocol Blob Limits:** Under the Cancun-era EIP-4844 parameters modelled in this evaluation, the maximum was 6 blobs per block. Pectra's EIP-7691 increased the target and maximum blob counts; the repository reports Cancun and Pectra capacity scenarios separately. Any compressed dataset exceeding the per-transaction limit cannot be submitted in a single transaction; `DatasetRegistry.sol` supports multi-transaction assembly via `openDataset(...)` followed by `appendBlobs(...)` and `finalize(...)`.
 3. **Optimistic Dispute Window Alignment:** Any optimistic property claim must have a challenge deadline strictly prior to `firstBlobAt + BLOB_RETENTION_SECONDS`. Once blobs are pruned, unrefuted claims transition to `Unchallenged`, never "proven".
 
 ---

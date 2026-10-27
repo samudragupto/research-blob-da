@@ -158,6 +158,5 @@ Verification validates:
 - **Blob Gas Used:** 131,072
 - **Records Root:** `0x6120e0c2e0712d0eca82b57aa8581dd02cbbb3bddf8136b7976aa63421544064`
 - **Content Hash:** `0x46b91d8c2a4535a190e8f36f551cdb6f32512dbc1e5b802bb3320aca167ff686`
-- **Retrieval Verification Outcome:**
-  Retrieval verified on 2026-10-27 16:28:44 UTC from the local cache: the blob sidecar was retrieved, the dataset was reconstructed, and the reconstructed canonical-payload SHA-256 matched the manifest.
-  *Consensus Gateway Disclosure:* Independent live consensus queries to public Sepolia beacon nodes (`lodestar-sepolia.chainsafe.io` and `ethereum-sepolia-beacon-api.publicnode.com`) returned 500 and 400 gateway errors, and the public Blobscan Sepolia indexer head was lagging at block 11,818,175 (~188k blocks behind live block 12,006,195). Reconstructed data was verified from local sidecar cache against on-chain versioned hash and manifest SHA-256, recorded in `deployments/sepolia_retrieval_verification.json`.
+### Local Reconstruction Verification
+Local reconstruction was verified on 2026-10-27 at 16:28:44 UTC. The locally retained blob produced the KZG versioned hash recorded on Sepolia, and the reconstructed canonical-payload SHA-256 matched the manifest. Public Sepolia Beacon API retrieval was attempted but did not succeed because the tested gateways returned errors; these attempts are recorded in `deployments/sepolia_retrieval_verification.json`.

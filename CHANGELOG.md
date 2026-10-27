@@ -38,4 +38,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known Limitations
 - **Ephemeral Blob Retention:** Blob sidecars are pruned by consensus clients after approximately 4096 epochs (~18.2 days). Permanent archival requires external indexers or IPFS/Filecoin pinning.
-- **Block and Transaction Limits:** Under current Cancun parameters (max 6 blobs per transaction), datasets exceeding 761 KiB compressed require multi-transaction submissions.
+- **Protocol Blob Limits:** Under the Cancun-era EIP-4844 parameters modelled in this evaluation, the maximum was 6 blobs per block. Pectra's EIP-7691 increased the target and maximum blob counts; the repository reports Cancun and Pectra capacity scenarios separately.

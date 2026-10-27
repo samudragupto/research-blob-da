@@ -297,12 +297,12 @@ Cost calculations assume standard documented parameters: ETH Price = $3,000.00 U
 > **Assumptions:** Canonical record serialization, Zstandard level 3 compression, and 31-byte field element packing (FE31). Blob counts, monetary costs, and compression ratios reflect canonical payload bytes actually compressed and posted. Calldata costs represent standard calldata before application of the EIP-7623 floor.
 
 | Dataset Name | Type | Records | Canonical Payload Size | Compressed Size | Ratio | Blobs | Blob Cost (USD) | Calldata Cost (USD) | Savings | Encoding Time (Mean ± Std, N=10) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **ML Training Trace (JSON)** | Synthetic Dataset | 10,000 | 1056.1 KiB | 174.9 KiB | 6.04x | **2** | $10.7079 | $129.91 | **12.1x** | 207.0 ms ± 3.7 ms |
-| **Climate Station Data (CSV)** | Synthetic Dataset | 20,000 | 3051.4 KiB | 403.1 KiB | 7.57x | **4** | $15.4307 | $298.14 | **19.3x** | 423.4 ms ± 11.3 ms |
-| **Genomics Variants** | Synthetic Dataset | 8,000 | 946.0 KiB | 163.0 KiB | 5.80x | **2** | $10.7079 | $121.14 | **11.3x** | 139.8 ms ± 0.7 ms |
-| **Academic Metadata (JSON)** | Synthetic Dataset | 5,000 | 825.4 KiB | 74.1 KiB | 11.13x | **1** | $8.3464 | $55.61 | **6.7x** | 100.9 ms ± 2.4 ms |
-| **OpenAlex Academic Works** | Real Dataset | 500 | 207.5 KiB | 50.3 KiB | 4.13x | **1** | $8.3464 | $38.01 | **4.6x** | 11.7 ms ± 0.2 ms |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| ML Training Trace (JSON) | Synthetic Dataset | 10,000 | 1056.1 KiB | 174.9 KiB | 6.04x | 2 | $10.7079 | $129.91 | 12.1x | 207.0 ms ± 3.7 ms |
+| Climate Station Data (CSV) | Synthetic Dataset | 20,000 | 3051.4 KiB | 403.1 KiB | 7.57x | 4 | $15.4307 | $298.14 | 19.3x | 423.4 ms ± 11.3 ms |
+| Genomics Variants | Synthetic Dataset | 8,000 | 946.0 KiB | 163.0 KiB | 5.80x | 2 | $10.7079 | $121.14 | 11.3x | 139.8 ms ± 0.7 ms |
+| Academic Metadata (JSON) | Synthetic Dataset | 5,000 | 825.4 KiB | 74.1 KiB | 11.13x | 1 | $8.3464 | $55.61 | 6.7x | 100.9 ms ± 2.4 ms |
+| OpenAlex Academic Works | Real Dataset | 500 | 207.5 KiB | 50.3 KiB | 4.13x | 1 | $8.3464 | $38.01 | 4.6x | 11.7 ms ± 0.2 ms |
 
 > **Note on the OpenAlex row:** The committed source file is 264,057 bytes (257.9 KiB). The pipeline parses it, extracts the documented record fields, and deterministically canonicalizes the records before compression. The canonical payload actually compressed and encoded is 212,517 bytes (207.5 KiB). Compression ratio, blob count, and cost are therefore calculated from canonical payload bytes.
 
