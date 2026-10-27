@@ -87,3 +87,6 @@ jobs:
         env:
           PYTHONPATH: .
         run: pytest -v tests
+
+      - name: Run Repository Consistency Check
+        run: python python/check_consistency.py

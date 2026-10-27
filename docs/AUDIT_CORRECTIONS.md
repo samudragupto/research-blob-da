@@ -319,3 +319,87 @@ A comprehensive audit scan was conducted across all repository files for banned 
   - Repetition: In headlines and summaries, Table A figures carry the explicit qualifier "before application of the EIP-7623 floor".
 - **Files Changed:** `README.md`, `docs/RESEARCH.md`, `docs/METHODOLOGY.md`, `docs/ETHRESEARCH_POST.md`, `benchmarks/generated_tables.md`, `tests/test_cost_model.py`.
 - **Automated Guard Added:** In `python/check_consistency.py`, `check_eip7623_status_and_table_a_label()` enforces that no conditional language ("proposes", "if enacted") appears in EIP-7623 contexts, and that Table A explicitly includes the pre-floor disclaimer.
+
+---
+
+## 10. Final Reviewer Corrections Before v0.1.0
+
+**Date:** October 2026  
+**Status:** Completed and Frozen for v0.1.0 Tagging and ETHConf Review
+
+### 10.1 Fix 1: Correct the OpenAlex Row and Table B Column Heading
+
+- **Previous Text / Discrepancy:** Table B labeled 207.5 KiB as `Raw Size` for OpenAlex Academic Works. A reviewer examining the committed source file on disk (`data/real_academic_openalex.json`) observes 264,057 bytes (257.9 KiB). Table B lacked an immediate reconciliation note directly under the table.
+- **Where It Appeared:** `README.md` Table B, `docs/RESEARCH.md` Table 1B, `benchmarks/generated_tables.md`, `python/experiments.py`.
+- **Root Cause:** The pipeline parses the committed OpenAlex source file (264,057 bytes), extracts documented schema fields, and deterministically normalizes records into an RFC 8785 canonical stream before compression. The canonical payload actually compressed and encoded is 212,517 bytes (207.5 KiB). Table B was populated from canonical payload bytes for all datasets, but the column was imprecisely labeled "Raw Size".
+- **Corrected Text & Values:**
+  - Column heading renamed from `Raw Size` to `Canonical Payload Size` across `README.md`, `docs/RESEARCH.md`, `benchmarks/generated_tables.md`, and `python/experiments.py`.
+  - Added note immediately below Table B in `README.md` and `docs/RESEARCH.md`:
+    > **Note on the OpenAlex row:** The committed source file is 264,057 bytes (257.9 KiB). The pipeline parses it, extracts the documented record fields, and deterministically canonicalizes the records before compression. The canonical payload actually compressed and encoded is 212,517 bytes (207.5 KiB). Compression ratio, blob count, and cost are therefore calculated from canonical payload bytes.
+  - Updated Section 3.3 / Section 4.1 explanatory notes to reference canonical payload bytes.
+- **Files Changed:** `README.md`, `docs/RESEARCH.md`, `benchmarks/generated_tables.md`, `python/experiments.py`, `python/plot_results.py`.
+- **Automated Guard Added:** `check_table_b_guards()` in `python/check_consistency.py` verifies that Table B does not contain `Raw Size`, verifies that `Canonical Payload Size` is present, asserts presence of the OpenAlex explanatory note directly under the table, and checks that the canonical byte count in the note matches `benchmarks/cost_comparison_compressed.csv`.
+
+---
+
+### 10.2 Fix 2: Freeze One Benchmark Generation and Synchronise Encoding Times
+
+- **Previous Text / Discrepancy:** Encoding times drifted between benchmark runs (e.g., 11.3 ms ± 0.1 ms in one benchmark generation versus 11.5 ms ± 0.1 ms in earlier README versions).
+- **Where It Appeared:** `README.md`, `docs/RESEARCH.md`, `benchmarks/cost_comparison_compressed.csv`, `benchmarks/encoding_efficiency.csv`, `benchmarks/generated_tables.md`.
+- **Root Cause:** Different document updates were committed from different benchmark runs. Timing in Python is hardware- and environment-dependent.
+- **Corrected Text & Values:**
+  - One final benchmark generation was executed using `python python/experiments.py` and `python python/plot_results.py`.
+  - The authoritative frozen OpenAlex encoding latency is **11.7 ms ± 0.2 ms (N=10)**.
+  - Synchronized across all outputs: `benchmarks/cost_comparison_compressed.csv`, `benchmarks/encoding_efficiency.csv`, `benchmarks/generated_tables.md`, `README.md`, and `docs/RESEARCH.md`.
+  - Added run count `N=10` to Table B encoding column headings.
+  - Created freeze manifest `benchmarks/FROZEN_BENCHMARKS_v0.1.0.json` recording UTC freeze timestamp (`2026-10-27T16:28:29Z`), generation commands, SHA-256 hashes of all 7 benchmark files, and immutability notice.
+  - Added Benchmark Freeze subsection to `docs/REPRODUCIBILITY.md`.
+- **Files Changed:** `benchmarks/FROZEN_BENCHMARKS_v0.1.0.json`, `benchmarks/cost_comparison_compressed.csv`, `benchmarks/encoding_efficiency.csv`, `benchmarks/generated_tables.md`, `README.md`, `docs/RESEARCH.md`, `docs/REPRODUCIBILITY.md`.
+- **Automated Guard Added:** `check_benchmark_freeze_and_timing_guards()` in `python/check_consistency.py` validates SHA-256 hashes of all frozen benchmark files against the freeze record and verifies that Table B contains `11.7 ms ± 0.2 ms` with `N=10`.
+
+---
+
+### 10.3 Fix 3: Full Clickable Sepolia Proof and Retrieval Verification
+
+- **Previous Text / Discrepancy:** The README contained truncated transaction hashes (`0xa55af2b2...`) and lacked an empirical verification statement confirming blob retrieval and reconstruction.
+- **Where It Appeared:** `README.md` Section 7, `docs/SEPOLIA_DEPLOYMENT.md`.
+- **Root Cause:** Hashes were truncated for layout conciseness. A full post-broadcast retrieval verification pass had not been documented.
+- **Corrected Text & Values:**
+  - Published full 66-character hashes for deployment transaction (`0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751`), blob transaction (`0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea`), dataset ID (`0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b`), and versioned hash (`0x010e6c7880a790abbedd746b98b713b5780e8e662d9f57f31cc51671b01faf11`).
+  - Linked `DatasetRegistry` contract to plain address view `https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b` (noting that contract source code verification on Etherscan remains a manual author step).
+  - Omitted Blobscan transaction link per Fix 3 criteria because public Blobscan Sepolia indexer head was lagging at block 11,818,175 (~188k blocks behind live block 12,006,195).
+  - Attempted live consensus retrieval: public Sepolia beacon nodes (`lodestar-sepolia.chainsafe.io` and `ethereum-sepolia-beacon-api.publicnode.com`) returned 500 and 400 gateway errors.
+  - Reconstructed dataset from local sidecar cache (`data/encoded_sepolia/blob_0.bin`): exactly 212,517 canonical bytes reconstructed, reconstructed SHA-256 matched manifest (`0b7175bfbd6aa0cf048d8c9e5bf1a2c51302531fcce936871bcb84d8b919c12c`), and versioned hash matched on-chain hash. Documented in `deployments/sepolia_retrieval_verification.json`.
+  - Added retrieval verification statement in `README.md` and `docs/SEPOLIA_DEPLOYMENT.md`.
+- **Files Changed:** `README.md`, `docs/SEPOLIA_DEPLOYMENT.md`, `deployments/sepolia_retrieval_verification.json`.
+- **Automated Guard Added:** `check_sepolia_proof_and_retrieval_guards()` in `python/check_consistency.py` fails if truncated hashes appear in `README.md`, validates on-chain addresses/hashes against `deployments/sepolia_deployment.json`, and asserts that retrieval verification claims match `deployments/sepolia_retrieval_verification.json`.
+
+---
+
+### 10.4 Fix 4: Remove Audit-History Language and Expand Calldata Shorthand
+
+- **Previous Text / Discrepancy:** `README.md` contained `not the 32 gas/byte heuristic previously discussed`, `docs/RESEARCH.md` referenced the commonly cited 32 gas/byte figure and 69x savings, and headline findings used imprecise shorthand `standard calldata (16 gas/byte)`.
+- **Where It Appeared:** `README.md`, `docs/RESEARCH.md`, `docs/METHODOLOGY.md`.
+- **Root Cause:** Preliminary internal discussion notes and review heuristics leaked into public repository documentation.
+- **Corrected Text & Values:**
+  - Removed all audit-history phrases (`previously discussed`, `32 gas/byte heuristic`, `69x`).
+  - Published exact payload-specific EIP-7623 floor formulation:
+    > Because the measured compressed payload is over 99.6% non-zero bytes, its effective EIP-7623 floor is approximately 39.88 gas per byte. Post-Pectra calldata costs for pure DA increase by approximately 2.5x, further widening the economic advantage of blobs. Detailed vectors and calculations are in `benchmarks/calldata_eip7623_sensitivity.csv`.
+  - Expanded headline shorthand in `README.md` and docs to:
+    > standard calldata cost, 4 gas per zero byte and 16 gas per non-zero byte, before application of the EIP-7623 floor
+- **Files Changed:** `README.md`, `docs/RESEARCH.md`, `docs/METHODOLOGY.md`.
+- **Automated Guard Added:** `check_no_obsolete_claims()` and `check_headline_calldata_shorthand()` in `python/check_consistency.py` fail if `previously discussed`, `32 gas/byte heuristic`, or headline `(16 gas/byte)` appear.
+
+---
+
+### 10.5 Fix 5: Synthetic ML Training Trace Terminology
+
+- **Previous Text / Discrepancy:** The phrase `The ML training telemetry contains...` and informal terms like `ML training telemetry` appeared in explanatory notes and scripts.
+- **Where It Appeared:** `README.md`, `docs/RESEARCH.md`, `docs/DEMO_VIDEO_SCRIPT.md`, `python/experiments.py`.
+- **Root Cause:** Inconsistent terminology referring to the synthetic dataset as telemetry rather than synthetic trace.
+- **Corrected Text & Values:**
+  - Standardized sentence to begin: `The synthetic ML training trace contains...`
+  - Replaced informal occurrences with `synthetic ML training trace`.
+- **Files Changed:** `README.md`, `docs/RESEARCH.md`, `docs/DEMO_VIDEO_SCRIPT.md`, `python/experiments.py`.
+- **Automated Guard Added:** `check_no_banned_ml_phrases()` in `python/check_consistency.py` fails if `The ML training telemetry contains` appears in `README.md` or `docs/RESEARCH.md`.
+
