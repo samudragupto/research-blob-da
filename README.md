@@ -32,6 +32,7 @@ This repository contains the complete open-source prototype, Foundry contracts, 
   - Ethresearch Discussion Draft: [docs/ETHRESEARCH_POST.md](docs/ETHRESEARCH_POST.md)
   - Generated Benchmark CSVs: [benchmarks/](benchmarks/)
 - **Sepolia Testnet Status:** Deployed and verified on Ethereum Sepolia (see [docs/SEPOLIA_DEPLOYMENT.md](docs/SEPOLIA_DEPLOYMENT.md) and [`deployments/sepolia_deployment.json`](deployments/sepolia_deployment.json)).
+- **Release v0.1.0:** [GitHub Release v0.1.0](https://github.com/samudragupto/research-blob-da/releases/tag/v0.1.0)
 
 ---
 

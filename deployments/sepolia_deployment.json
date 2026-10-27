@@ -8,6 +8,10 @@
   "transaction_hash": "0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751",
   "block_number": 12006103,
   "verification_url": "https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b#code",
+  "verification_status": "Pass - Verified",
+  "compiler_version": "v0.8.24+commit.e11b9ed9",
+  "evm_version": "cancun",
+  "optimization_runs": 200,
   "baseline_contracts": {
     "CalldataSink": {
       "address": "0xd501D47b246438A18C8a0BFFCF10338CfBB661a2",

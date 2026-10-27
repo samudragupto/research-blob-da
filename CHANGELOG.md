@@ -31,9 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TypeScript CLI Alignment:** Corrected `frontend-or-cli/ts/src/blob_tx.ts` ABI and parameter serialization to match `DatasetRegistry.sol`.
 
 ### Verified
-- 40 passing Python unit tests covering canonical serialization, encoding, decoding, commitments, real dataset parsing, and cost models.
+- 43 passing Python unit tests covering canonical serialization, encoding, decoding, commitments, real dataset parsing, cost models, and sidecar retrieval.
 - 31 passing Foundry tests covering contract registration, range proofs, property refutation, and baselines.
-- Reproduction scripts regenerating all 6 benchmark CSV files and 6 publication figures (PNG and PDF).
+- Frozen benchmark generation (`benchmarks/FROZEN_BENCHMARKS_v0.1.0.json`) with deterministic SHA-256 verification across all benchmark files.
+- Sepolia testnet deployment of `DatasetRegistry` at `0x238dE56E52A3F6C6708952052e6a20E5102b4d5b#code` (verified on Etherscan) and live EIP-4844 blob broadcast with local sidecar reconstruction verified.
 
 ### Known Limitations
 - **Ephemeral Blob Retention:** Blob sidecars are pruned by consensus clients after approximately 4096 epochs (~18.2 days). Permanent archival requires external indexers or IPFS/Filecoin pinning.

@@ -1,96 +1,92 @@
-# Release Notes: research-blob-da v0.1.0
+# research-blob-da v0.1.0
 
 **Release Tag:** `v0.1.0`  
 **Release Title:** `research-blob-da v0.1.0: Verifiable Data Availability for Research Datasets via EIP-4844 Blobs`  
-**Author:** Arrhat Nag (GitHub: samudragupto)  
-**Date:** October 2026  
+**Author:** Arrhat Nag (GitHub: [samudragupto](https://github.com/samudragupto))  
+**Date:** October 2026 (Release Date: 2026-10-27 UTC)  
 
 ---
 
 ## Overview
 
-`research-blob-da` is an empirical research prototype establishing Ethereum EIP-4844 blobs as a cheap, verifiable data-availability primitive for scientific research datasets, machine learning training traces, climate observations, and academic archives.
+`research-blob-da` is an empirical research prototype and evaluation framework demonstrating that Ethereum EIP-4844 blobs can serve as a cheap, decentralized, and verifiable data-availability primitive for scientific datasets, machine learning training traces, climate sensor series, and academic archives.
 
-This v0.1.0 release provides a complete, tested, and reproducible pipeline:
-- **Canonical Serialization & Packing:** Canonical length-prefixed stream format (RFC 8785) with conservative 31-byte field element modulus packing (`FE31`) and Zstandard compression.
-- **Cryptographic Commitments:** Keccak-256 binary Merkle trees with single-leaf inclusion proofs and high-efficiency batch range proofs.
-- **Foundry EVM Contracts:** `DatasetRegistry.sol` anchoring dataset records roots, content hashes, and versioned hashes read directly from the `BLOBHASH` opcode, with optimistic property refutations.
-- **Empirical Evaluation:** Rigorous benchmark suite measuring monetary costs, encoding throughput, packing efficiency, and EVM gas scaling across four synthetic datasets and one real OpenAlex academic metadata dataset.
-- **Economic & Protocol Models:** Exact implementations of usable blob payload limits, official EIP-7623 calldata floor formulas, multi-block SSTORE extrapolations, and fee break-even sensitivity grids.
+The prototype implements an end-to-end pipeline spanning deterministic canonical serialization (RFC 8785), modulus-safe field element modulus packing (`FE31`), binary Keccak-256 Merkle commitments, EVM contracts (`DatasetRegistry.sol`) anchoring blob versioned hashes via `BLOBHASH`, and optimistic dispute games with on-chain fraud refutations.
 
 ---
 
-## Release Artifacts
+## Defensible Headline Findings
 
-- **Core Codebase:**
-  - Python Engine: `python/canonical.py`, `python/encoder.py`, `python/decoder.py`, `python/commitments.py`, `python/retriever.py`, `python/cost_model.py`, `python/fetch_real_data.py`.
-  - Solidity Contracts: `contracts/DatasetRegistry.sol`, `contracts/libraries/`, `contracts/baselines/`.
-  - CLI & TS Broadcast: `frontend-or-cli/rbda_cli.py`, `frontend-or-cli/ts/src/blob_tx.ts`.
-- **Benchmark Data:**
-  - `benchmarks/cost_comparison_uncompressed.csv` (Table A)
-  - `benchmarks/cost_comparison_compressed.csv` (Table B)
-  - `benchmarks/blob_capacity_limits.csv`
-  - `benchmarks/fee_sensitivity.csv`
-  - `benchmarks/calldata_eip7623_sensitivity.csv`
-  - `benchmarks/encoding_efficiency.csv`
-  - `benchmarks/verification_benchmarks.csv`
-  - `benchmarks/throughput_latency.csv`
-  - `benchmarks/ablation_compression.csv`
-  - `benchmarks/ablation_packing.csv`
-- **Publication Figures:**
-  - `benchmarks/figure1_cost_comparison.{png,pdf}`
-  - `benchmarks/figure2_compression_efficiency.{png,pdf}`
-  - `benchmarks/figure3_verification_scaling.{png,pdf}`
-  - `benchmarks/figure4_latency_breakdown.{png,pdf}`
-  - `benchmarks/figure5_compression_ablation.{png,pdf}`
-  - `benchmarks/figure6_fee_sensitivity.{png,pdf}`
-- **Documentation:**
-  - `docs/RESEARCH.md`: Comprehensive academic research paper.
-  - `docs/METHODOLOGY.md`: Experimental setup, gas metrics, and hardware specifications.
-  - `docs/ENGINEERING_LESSONS.md`: Concrete implementation insights and cryptographic edge cases.
-  - `docs/SEPOLIA_DEPLOYMENT.md`: Step-by-step testnet deployment and sidecar retrieval guide.
-  - `docs/ETHRESEARCH_POST.md`: Peer-review draft for ethresear.ch.
-  - `docs/DEMO_VIDEO_SCRIPT.md`: 2-minute CLI walkthrough script.
+All empirical benchmarks were executed under documented baseline fee assumptions: **15 gwei execution base fee**, **2 gwei blob base fee**, and **$3,000 USD per ETH**.
+
+1. **27.8x Theoretical Uncompressed Cost Reduction vs. Standard Calldata:**
+   A 1.0 MiB uncompressed raw payload requires 9 blobs (based on 126,945 usable body bytes per blob), costing **$27.24 USD** in blobs versus **$755.92 USD** in standard calldata cost, 4 gas per zero byte and 16 gas per non-zero byte, before application of the EIP-7623 floor—a **27.8x cost reduction**.
+
+2. **12.1x Measured Compressed Cost Reduction on an ML Training Trace:**
+   On a synthetic ML training trace of 1,056.1 KiB (1,081,484 bytes), compression with Zstandard level 3 achieves a 6.04x reduction to 174.9 KiB (179,112 bytes). Packing this stream requires only 2 blobs, costing **$10.71 USD** in blobs versus **$129.91 USD** in standard calldata before application of the EIP-7623 floor—a **12.1x cost reduction**.
+
+3. **Real Academic Dataset Empirical Demonstration (OpenAlex):**
+   Evaluating a real scholarly dataset of 500 work records from the OpenAlex API (committed source file: 264,057 bytes / 257.9 KiB; canonical payload: 212,517 bytes / 207.5 KiB) achieves a 4.13x compression ratio down to 50.3 KiB. The compressed payload fits entirely within a single blob, costing **$8.35 USD** with a frozen encoding latency of **11.7 ms ± 0.2 ms (N=10)**.
+
+4. **Break-Even Blob Base Fee:**
+   At a 15 gwei execution base fee, the analytical break-even blob base fee for a 1.0 MiB payload is **207.9 gwei**. Blobs provide an economic advantage over calldata across all market regimes where the blob base fee remains below 207.9 gwei.
 
 ---
 
-## Reviewer Quickstart (Reproduction in Under 2 Minutes)
+## Ethereum Sepolia Testnet Deployment
+
+The complete smart contract suite and a live EIP-4844 Type-3 blob payload have been deployed and verified on the Ethereum Sepolia testnet:
+
+- **Network:** Ethereum Sepolia (Chain ID: 11155111)
+- **DatasetRegistry Contract:** [`0x238dE56E52A3F6C6708952052e6a20E5102b4d5b`](https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b#code) (Verified on Etherscan: compiler v0.8.24, EVM target cancun, 200 optimization runs)
+- **Deployment Transaction:** [`0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751`](https://sepolia.etherscan.io/tx/0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751) (Block 12006103)
+- **Live EIP-4844 Blob Transaction:** [`0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea`](https://sepolia.etherscan.io/tx/0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea) (Block 12006195)
+- **Dataset ID:** `0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b`
+- **KZG Versioned Hash:** `0x010e6c7880a790abbedd746b98b713b5780e8e662d9f57f31cc51671b01faf11`
+- **Deployment Record:** [deployments/sepolia_deployment.json](deployments/sepolia_deployment.json)
+
+### Local Reconstruction and Verification
+Retrieval verified on 2026-10-27 16:28:44 UTC from the local cache: the blob sidecar was retrieved, the dataset was reconstructed, and the reconstructed canonical-payload SHA-256 (`0b7175bfbd6aa0cf048d8c9e5bf1a2c51302531fcce936871bcb84d8b919c12c`) matched the manifest and bound to the versioned hash recorded on Sepolia. (Independent consensus retrieval from public Sepolia beacon nodes encountered upstream gateway errors 500/400, and the public Blobscan Sepolia indexer head was lagging at block 11,818,175, ~188k blocks behind live block 12,006,195; full disclosure in [deployments/sepolia_retrieval_verification.json](deployments/sepolia_retrieval_verification.json)).
+
+---
+
+## Reproduction Commands
+
+To reproduce the test suites, formal verification, and empirical benchmarks:
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/samudragupto/research-blob-da.git
-cd research-blob-da
-
-# 2. Run Foundry smart contract test suite
+# 1. Smart contract compilation and tests (31 passing tests)
 forge test
 
-# 3. Set up Python environment and run test suite
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r python/requirements.txt
+# 2. Python test suite (43 passing tests)
 pytest -v tests
 
-# 4. Regenerate all benchmarks, figures, and verified tables
+# 3. Benchmark generation scripts (optional; reproduces CSV data and publication figures)
 python python/experiments.py
 python python/plot_results.py
 
-# 5. Run consistency check
+# 4. Repository consistency audit (validates numbers and freeze record)
 python python/check_consistency.py
 ```
 
+*Note on Reproduction Hardware:* Re-running `python/experiments.py` on different hardware or operating systems will naturally produce hardware-dependent timing latencies (mean and standard deviation), while dataset sizes, compression ratios, blob counts, and monetary cost models remain strictly invariant and deterministic. The attached CSV files represent the authoritative frozen v0.1.0 generation rather than a newly executed run.
+
 ---
 
-## Instructions for Author to Tag and Publish Release
+## Research Documentation
 
-When ready to tag and create the release on GitHub, execute the following commands:
+- Comprehensive Academic Paper: [docs/RESEARCH.md](docs/RESEARCH.md)
+- Experimental Methodology and Gas Profiles: [docs/METHODOLOGY.md](docs/METHODOLOGY.md)
+- Engineering Insights and Cryptographic Edge Cases: [docs/ENGINEERING_LESSONS.md](docs/ENGINEERING_LESSONS.md)
+- Testnet Deployment and Verification Guide: [docs/SEPOLIA_DEPLOYMENT.md](docs/SEPOLIA_DEPLOYMENT.md)
+- Authoritative Benchmark Freeze Record: [benchmarks/FROZEN_BENCHMARKS_v0.1.0.json](benchmarks/FROZEN_BENCHMARKS_v0.1.0.json)
+- Two-Minute Demonstration Script: [docs/DEMO_VIDEO_SCRIPT.md](docs/DEMO_VIDEO_SCRIPT.md)
 
-```bash
-# Create annotated Git tag
-git tag -a v0.1.0 -m "research-blob-da v0.1.0: Verifiable Data Availability for Research Datasets via EIP-4844 Blobs"
-git push origin v0.1.0
+---
 
-# Create GitHub release via GitHub CLI
-gh release create v0.1.0 \
-  --title "research-blob-da v0.1.0: Verifiable Data Availability for Research Datasets via EIP-4844 Blobs" \
-  --notes-file docs/RELEASE_v0.1.0.md
-```
+## Fundamental Protocol Limitations
+
+1. **Ephemeral Retention Horizon:** Blob sidecars are pruned by consensus layer clients after approximately 4,096 epochs (~18.2 days). Blobs guarantee temporary decentralized data availability, not permanent perpetual storage.
+2. **Per-Block and Per-Transaction Limits:** Under current Cancun rules (max 6 blobs per transaction / block), compressed datasets exceeding 761 KiB require multi-transaction submissions.
+3. **Retrieval Infrastructure Dependence:** Consumers and auditors must retrieve sidecars from consensus beacon nodes, local sidecar caches, or decentralized archival networks before the pruning window expires.
+4. **Archival Layer Requirement:** Long-term durability requires an extended availability layer (such as IPFS/Filecoin pinning, BitTorrent swarms, or decentralized cold-storage providers) anchored to the on-chain versioned hash and Merkle root.
