@@ -31,7 +31,7 @@ This repository contains the complete open-source prototype, Foundry contracts, 
   - Two-Minute Demonstration Script: [docs/DEMO_VIDEO_SCRIPT.md](docs/DEMO_VIDEO_SCRIPT.md)
   - Ethresearch Discussion Draft: [docs/ETHRESEARCH_POST.md](docs/ETHRESEARCH_POST.md)
   - Generated Benchmark CSVs: [benchmarks/](benchmarks/)
-- **Sepolia Testnet Status:** Local simulation complete. Sepolia deployment script ready. Deployment pending a funded Sepolia account (see [docs/SEPOLIA_DEPLOYMENT.md](docs/SEPOLIA_DEPLOYMENT.md)).
+- **Sepolia Testnet Status:** Deployed and verified on Ethereum Sepolia (see [docs/SEPOLIA_DEPLOYMENT.md](docs/SEPOLIA_DEPLOYMENT.md) and [`deployments/sepolia_deployment.json`](deployments/sepolia_deployment.json)).
 
 ---
 
@@ -189,8 +189,14 @@ Because compressed research data is over 99.6% non-zero, the effective floor for
 
 ## 7. Testnet Deployment Status
 
-- **Status:** Local simulation complete. Sepolia deployment script ready. Deployment pending a funded Sepolia account.
-- **Verification Guarantee:** No simulated or fabricated deployment addresses are included in this documentation. Complete step-by-step instructions for broadcasting transactions and retrieving sidecars before the 4,096-epoch pruning deadline are provided in [docs/SEPOLIA_DEPLOYMENT.md](docs/SEPOLIA_DEPLOYMENT.md).
+- **Network:** Ethereum Sepolia (Chain ID: 11155111)
+- **Deployment Status:** Deployed and active on Ethereum Sepolia.
+- **Contract Addresses:**
+  - `DatasetRegistry`: [`0x238dE56E52A3F6C6708952052e6a20E5102b4d5b`](https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b) (Tx: [`0xa55af2b2...`](https://sepolia.etherscan.io/tx/0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751), Block: 12006103)
+  - `CalldataSink`: [`0xd501D47b246438A18C8a0BFFCF10338CfBB661a2`](https://sepolia.etherscan.io/address/0xd501D47b246438A18C8a0BFFCF10338CfBB661a2) (Tx: [`0xdaa50cbc...`](https://sepolia.etherscan.io/tx/0xdaa50cbc1299870677cb392ea7cec09853c93eaab4e066b01ede2f369ae7155c))
+  - `SstoreArchive`: [`0x9e1bE1BE26f6Dc22e9EfdCE3b5976E170b80EA9d`](https://sepolia.etherscan.io/address/0x9e1bE1BE26f6Dc22e9EfdCE3b5976E170b80EA9d) (Tx: [`0xa28e4774...`](https://sepolia.etherscan.io/tx/0xa28e47741560697f28d9ac8a78aafbdff95999707f985360832049debb20a14f))
+  - `AnchorRegistry`: [`0x3E999efE07478E11aCDFc19a89f2e29547a69E4d`](https://sepolia.etherscan.io/address/0x3E999efE07478E11aCDFc19a89f2e29547a69E4d) (Tx: [`0x6668067d...`](https://sepolia.etherscan.io/tx/0x6668067dd1fe9f86cad3739865afd60a6c819cf6f59926f978597fc3bb941d0e))
+- **Deployment Details:** Full artifact logs recorded in `deployments/sepolia_deployment.json`. Step-by-step instructions for broadcasting transactions and retrieving sidecars before the 4,096-epoch pruning deadline are provided in [docs/SEPOLIA_DEPLOYMENT.md](docs/SEPOLIA_DEPLOYMENT.md).
 
 ---
 
