@@ -1,0 +1,5 @@
+dataset_type,record_count,raw_size_kib,compressed_size_kib,compression_ratio,blob_count,packing_efficiency_pct,packing_waste_kib,encoding_time_ms,throughput_mibs
+ML Training Trace (JSON),10000,1056.14,174.91,6.04,2,70.6,73.03,219.14,4.71
+Climate Station Data (CSV/Tabular),20000,3051.4,403.09,7.57,4,81.3,92.79,440.25,6.77
+Genomics Variant Benchmark,8000,946.04,163.02,5.8,2,65.8,84.92,148.47,6.22
+Academic Paper Metadata (JSON),5000,825.45,74.14,11.13,1,59.8,49.83,118.85,6.78

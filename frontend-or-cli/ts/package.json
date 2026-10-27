@@ -1,0 +1,28 @@
+{
+  "name": "research-blob-da-ts",
+  "version": "1.0.0",
+  "description": "TypeScript SDK and testnet blob transaction broadcaster for research-blob-da",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "post-blob": "ts-node src/blob_tx.ts"
+  },
+  "keywords": [
+    "ethereum",
+    "eip-4844",
+    "blobs",
+    "data-availability",
+    "research"
+  ],
+  "author": "research-blob-da authors",
+  "license": "MIT",
+  "dependencies": {
+    "viem": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

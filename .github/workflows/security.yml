@@ -1,0 +1,38 @@
+name: Security Analysis
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "contracts/**"
+
+jobs:
+  slither-analysis:
+    name: Slither Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Slither
+        run: pip install slither-analyzer solc-select
+
+      - name: Install Solc Compiler
+        run: |
+          solc-select install 0.8.24
+          solc-select use 0.8.24
+
+      - name: Run Slither
+        run: slither . --foundry-ignore-compile --filter-paths "lib|test|script" --checklist || true

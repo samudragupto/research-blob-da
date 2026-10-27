@@ -1,0 +1,64 @@
+# Foundry configuration for research-blob-da.
+#
+# The default profile targets the Cancun EVM because it is the first fork that
+# exposes the BLOBHASH opcode (EIP-4844) and the KZG point-evaluation
+# precompile at address 0x0a. Bytecode compiled for Cancun executes unchanged
+# on all later forks (Prague, Osaka).
+
+[profile.default]
+src = "contracts"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+cache_path = "cache"
+solc_version = "0.8.28"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 10_000
+via_ir = true
+bytecode_hash = "none"
+cbor_metadata = false
+gas_reports = ["DatasetRegistry", "CalldataSink", "SstoreArchive", "AnchorRegistry"]
+fs_permissions = [
+    { access = "read", path = "./benchmarks" },
+    { access = "read", path = "./data" },
+    { access = "read", path = "./test/vectors" },
+]
+
+[profile.default.fuzz]
+runs = 1024
+max_test_rejects = 131072
+seed = "0x4844"
+
+[profile.default.invariant]
+runs = 256
+depth = 64
+fail_on_revert = false
+
+# Heavier fuzzing used by the CI pipeline.
+[profile.ci]
+fuzz = { runs = 4096, seed = "0x4844" }
+invariant = { runs = 512, depth = 128, fail_on_revert = false }
+
+# The IR pipeline is evaluated as an ablation in docs/RESEARCH.md. Run with
+# `FOUNDRY_PROFILE=ir forge test --gas-report` to compare execution gas.
+[profile.ir]
+via_ir = true
+
+[fmt]
+line_length = 110
+tab_width = 4
+bracket_spacing = false
+int_types = "long"
+quote_style = "double"
+number_underscore = "thousands"
+wrap_comments = false
+sort_imports = true
+
+[rpc_endpoints]
+sepolia = "${SEPOLIA_RPC_URL}"
+anvil = "http://127.0.0.1:8545"
+
+[etherscan]
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
