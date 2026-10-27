@@ -388,7 +388,10 @@ def check_sepolia_proof_and_retrieval_guards():
 
     # 3. Check retrieval verification
     retrieval_file = "deployments/sepolia_retrieval_verification.json"
-    if "Retrieval verified on" in readme_content:
+    if (
+        "Retrieval verified on" in readme_content
+        or "Local reconstruction was verified on" in readme_content
+    ):
         if not os.path.exists(retrieval_file):
             raise FileNotFoundError(
                 f"README claims retrieval verified, but {retrieval_file} is missing."
@@ -470,6 +473,121 @@ def check_eip7623_status_and_table_a_label():
     )
 
 
+def check_table_b_markdown_integrity():
+    """Validates structural integrity of Table B across markdown files."""
+    df_comp = pd.read_csv("benchmarks/cost_comparison_compressed.csv")
+    expected_name_prefixes = [
+        "ML Training Trace",
+        "Climate Station Data",
+        "Genomics Variant",
+        "OpenAlex Academic Works",
+    ]
+
+    target_files = [
+        "README.md",
+        "docs/RESEARCH.md",
+        "benchmarks/generated_tables.md",
+    ]
+
+    for p in target_files:
+        if not os.path.exists(p):
+            raise FileNotFoundError(f"File {p} not found for Table B integrity check")
+        with open(p, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        header_idx = None
+        for idx, line in enumerate(lines):
+            if "| Dataset Name |" in line and "| Canonical Payload Size |" in line:
+                header_idx = idx
+                break
+
+        if header_idx is None:
+            raise ValueError(f"Table B header row not found in {p}")
+
+        header_line = lines[header_idx].strip()
+        sep_line = lines[header_idx + 1].strip()
+        data_lines = [lines[header_idx + 2 + i].strip() for i in range(5)]
+
+        # 1. Confirm header, separator, and five data rows are separate physical lines
+        if not (header_line.startswith("|") and header_line.endswith("|")):
+            raise ValueError(f"Malformed header in {p}: {header_line}")
+        if not (sep_line.startswith("|") and sep_line.endswith("|")):
+            raise ValueError(f"Malformed separator in {p}: {sep_line}")
+
+        # 2. Check no sequence such as '| | :---' occurs on any line
+        for l in [header_line, sep_line] + data_lines:
+            if "| | :---" in l or "| |:---" in l:
+                raise ValueError(
+                    f"Found collapsed/malformed separator sequence in {p}: {l}"
+                )
+
+        # 3. Check pipe count: in an 11-column table, there must be exactly 12 pipe characters
+        header_pipes = header_line.count("|")
+        if header_pipes != 12:
+            raise ValueError(
+                f"Table B header in {p} has {header_pipes} pipes; expected 12 (11 columns)"
+            )
+
+        sep_pipes = sep_line.count("|")
+        if p == "benchmarks/generated_tables.md":
+            # Note: benchmarks/generated_tables.md is frozen in v0.1.0 per Rule 10 with 13 pipes in separator
+            if sep_pipes not in (12, 13):
+                raise ValueError(
+                    f"Table B separator in {p} has {sep_pipes} pipes; expected 12 or 13"
+                )
+        else:
+            if sep_pipes != 12:
+                raise ValueError(
+                    f"Table B separator in {p} has {sep_pipes} pipes; expected 12 (11 columns)"
+                )
+
+        for row_idx, row in enumerate(data_lines):
+            pipes = row.count("|")
+            if pipes != 12:
+                raise ValueError(
+                    f"Table B data row {row_idx+1} in {p} has {pipes} pipes; expected 12 (11 columns)"
+                )
+
+        # 4. Confirm the five expected dataset names appear once
+        table_text = "\n".join(data_lines)
+        for name in expected_name_prefixes:
+            if table_text.count(name) != 1:
+                raise ValueError(
+                    f"Expected dataset '{name}' to appear exactly once in Table B in {p}"
+                )
+        if (
+            table_text.count("Academic Metadata")
+            + table_text.count("Academic Paper Metadata")
+            != 1
+        ):
+            raise ValueError(
+                f"Expected Academic Metadata/Paper Metadata to appear exactly once in Table B in {p}"
+            )
+
+        # 5. Confirm exact dollar values appear with leading dollar signs
+        for _, r in df_comp.iterrows():
+            blob_cost = f"${r['blob_cost_usd']:.4f}"
+            calldata_cost = f"${r['calldata_cost_usd']:.2f}"
+            if blob_cost not in table_text:
+                raise ValueError(
+                    f"Expected blob cost '{blob_cost}' with literal dollar sign in Table B in {p}"
+                )
+            if calldata_cost not in table_text:
+                raise ValueError(
+                    f"Expected calldata cost '{calldata_cost}' with literal dollar sign in Table B in {p}"
+                )
+
+        # 6. Fail if displayed currency values begin with a decimal point and lack a dollar sign or leading digits
+        truncated_currency_pattern = re.compile(r"\|\s*\.\d{2,4}\s*\|")
+        for l in data_lines:
+            if truncated_currency_pattern.search(l):
+                raise ValueError(
+                    f"Found truncated currency value lacking leading digits or dollar sign in {p}: {l}"
+                )
+
+    print("[PASS] Table B Markdown structural integrity and currency values verified.")
+
+
 def main():
     print("=" * 60)
     print("RUNNING REPOSITORY CONSISTENCY AND INTEGRITY AUDIT")
@@ -484,6 +602,7 @@ def main():
     check_no_banned_ml_phrases()
     check_openalex_consistency()
     check_table_b_guards()
+    check_table_b_markdown_integrity()
     check_benchmark_freeze_and_timing_guards()
     check_sepolia_proof_and_retrieval_guards()
     check_headline_calldata_shorthand()
