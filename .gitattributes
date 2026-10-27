@@ -1,0 +1,16 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Force LF on data fixtures and JSON files to preserve SHA-256 integrity
+*.json text eol=lf
+*.py text eol=lf
+*.sol text eol=lf
+*.md text eol=lf
+*.csv text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binary files
+*.png binary
+*.pdf binary

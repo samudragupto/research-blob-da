@@ -163,11 +163,13 @@ def verify_manifest(
     with open(json_path, "rb") as f:
         content = f.read()
 
-    computed_sha256 = hashlib.sha256(content).hexdigest()
+    # Normalize line endings to LF to ensure deterministic checksum verification across Windows/Linux checkouts
+    content_lf = content.replace(b"\r\n", b"\n")
+    computed_sha256 = hashlib.sha256(content_lf).hexdigest()
     if computed_sha256 != manifest.get("sha256_checksum"):
         return False
 
-    records = json.loads(content.decode("utf-8"))
+    records = json.loads(content_lf.decode("utf-8"))
     return len(records) == manifest.get("record_count")
 
 
