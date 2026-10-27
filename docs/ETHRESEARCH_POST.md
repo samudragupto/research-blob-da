@@ -73,5 +73,5 @@ Honest research requires stating constraints clearly:
 
 - Repository: `https://github.com/samudragupto/research-blob-da`
 - Documentation & Paper: `https://github.com/samudragupto/research-blob-da/blob/main/docs/RESEARCH.md`
-- Sepolia Contract: `https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b`
+- Sepolia Contract: `https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b#code` (Verified)
 - Example Blob Transaction: `https://sepolia.etherscan.io/tx/0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea`
