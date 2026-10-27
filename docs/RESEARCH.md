@@ -1,8 +1,8 @@
 # Ephemeral Data Availability as an Academic Primitive: Verifiable Research Datasets via EIP-4844 Blobs
 
-**Authors:** Ethereum Protocol and Systems Research Prototype Group  
+**Author:** Arrhat Nag ([@samudragupto](https://github.com/samudragupto))  
 **Target Venue:** IEEE / ACM International Conference on Decentralized Computing and Protocol Engineering  
-**Artifact Repository:** [research-blob-da](file:///c:/Users/user/research-blob-da)  
+**Artifact Repository:** [github.com/samudragupto/research-blob-da](https://github.com/samudragupto/research-blob-da)  
 **Status:** Open-Source Research Prototype, Full Reproducibility Package  
 
 ---

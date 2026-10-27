@@ -1,10 +1,12 @@
 # research-blob-da
 
-[![CI](https://github.com/ethereum-research/research-blob-da/actions/workflows/ci.yml/badge.svg)](https://github.com/ethereum-research/research-blob-da/actions/workflows/ci.yml)
+[![CI](https://github.com/samudragupto/research-blob-da/actions/workflows/ci.yml/badge.svg)](https://github.com/samudragupto/research-blob-da/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.24-lightgrey.svg)](contracts/)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](python/)
 [![EVM Target](https://img.shields.io/badge/EVM-Cancun%20(EIP--4844)-orange.svg)](foundry.toml)
+
+**Author:** Arrhat Nag ([@samudragupto](https://github.com/samudragupto))
 
 **Verifiable, Cheap Data Availability for Scientific Datasets, ML Training Traces, and Academic Archives via Ethereum EIP-4844 Blobs.**
 
@@ -148,7 +150,6 @@ research-blob-da/
 │   └── deploy-sepolia.yml         # Manual Sepolia deployment workflow
 ├── foundry.toml                   # Foundry configuration (Cancun, via_ir=true)
 ├── requirements.txt               # Python dependencies
-├── CITATION.cff                   # Academic citation metadata
 └── LICENSE                        # MIT License
 ```
 
@@ -160,7 +161,7 @@ research-blob-da/
 
 ```bash
 # Clone repository
-git clone https://github.com/ethereum-research/research-blob-da.git
+git clone https://github.com/samudragupto/research-blob-da.git
 cd research-blob-da
 
 # Setup Python virtual environment
@@ -226,22 +227,6 @@ python frontend-or-cli/rbda_cli.py refute \
 
 ---
 
-## 7. Citation
-
-If you use `research-blob-da` or our empirical methodology in your research, please cite:
-
-```bibtex
-@article{research_blob_da_2026,
-  title={Ephemeral Data Availability as an Academic Primitive: Verifiable Research Datasets via EIP-4844 Blobs},
-  author={{Ethereum Protocol Research Group}},
-  journal={arXiv preprint},
-  year={2026},
-  url={https://github.com/ethereum-research/research-blob-da}
-}
-```
-
----
-
-## 8. License
+## 7. License
 
 This project is licensed under the [MIT License](LICENSE).

@@ -15,7 +15,7 @@
     "data-availability",
     "research"
   ],
-  "author": "research-blob-da authors",
+  "author": "Arrhat Nag",
   "license": "MIT",
   "dependencies": {
     "viem": "^2.7.0"

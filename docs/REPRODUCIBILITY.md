@@ -32,7 +32,7 @@ forge --version
 ### 1.3 Python Environment Setup
 Clone the repository and initialize a virtual environment:
 ```bash
-git clone https://github.com/ethereum-research/research-blob-da.git
+git clone https://github.com/samudragupto/research-blob-da.git
 cd research-blob-da
 
 # Create and activate virtual environment

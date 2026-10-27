@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
-    { name = "Ethereum Protocol Research Group" }
+    { name = "Arrhat Nag", email = "arrhatnag1@gmail.com" }
 ]
 
 [tool.pytest.ini_options]

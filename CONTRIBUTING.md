@@ -19,7 +19,7 @@ We adhere to the highest standards of scientific reproducibility, open-source pe
 
 ### Initializing the Workspace
 ```bash
-git clone https://github.com/ethereum-research/research-blob-da.git
+git clone https://github.com/samudragupto/research-blob-da.git
 cd research-blob-da
 
 # Setup virtual environment
