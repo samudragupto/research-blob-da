@@ -17,7 +17,7 @@
 This repository contains the complete open-source prototype, Foundry contracts, formal cost models, and empirical benchmark suite for the research paper *research-blob-da*.
 
 - **Headline Findings (Defensible & Verified):**
-  1. **27.8x Theoretical Cost Reduction vs. Standard Calldata:** Under documented economic assumptions (15 gwei execution base fee, 2 gwei blob base fee, $3,000 USD/ETH), posting a 1.0 MiB theoretical uncompressed dataset costs **$27.24** on EIP-4844 blobs versus **$755.92** on standard calldata (16 gas/byte) before application of the EIP-7623 floor.
+  1. **27.8x Theoretical Cost Reduction vs. Standard Calldata:** Under documented economic assumptions (15 gwei execution base fee, 2 gwei blob base fee, $3,000 USD/ETH), posting a 1.0 MiB theoretical uncompressed dataset costs **$27.24** on EIP-4844 blobs versus **$755.92** on standard calldata cost, 4 gas per zero byte and 16 gas per non-zero byte, before application of the EIP-7623 floor.
   2. **12.1x Measured Compressed Cost on an ML Training Trace:** A synthetic ML training trace of 1,056.1 KiB compresses 6.04x to 174.9 KiB and requires 2 blobs, giving a measured 12.1x cost reduction against posting the compressed payload as standard calldata under the stated fee assumptions ($10.71 vs. $129.91).
   3. **73.2% EVM Gas Reduction for Batch Audits:** On-chain contiguous subtree range proofs (`MerkleLib.sol`) reduce verification gas for 8 consecutive records from 97,200 gas down to 26,050 gas.
 - **One-Command Reproduction:**
@@ -105,23 +105,25 @@ All benchmark figures below are generated directly from executed code and commit
 ### 3.2 Table B: Measured Compressed Dataset Results
 
 > [!NOTE]
-> **Assumptions:** Canonical record serialization, Zstandard level 3 compression, and 31-byte field element packing (FE31). Blob counts and monetary costs reflect the actual compressed payloads.
+> **Assumptions:** Canonical record serialization, Zstandard level 3 compression, and 31-byte field element packing (FE31). Blob counts, monetary costs, and compression ratios reflect canonical payload bytes actually compressed and posted. Calldata costs represent standard calldata before application of the EIP-7623 floor.
 
-| Dataset Name | Type | Records | Raw Size | Compressed Size | Ratio | Blobs | Blob Cost (USD) | Calldata Cost (USD) | Savings | Encoding Time (Mean ± Std) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **ML Training Trace (JSON)** | Synthetic Dataset | 10,000 | 1056.1 KiB | 174.9 KiB | 6.04x | **2** | $10.7079 | $129.91 | **12.1x** | 225.5 ms ± 6.9 ms |
-| **Climate Station Data (CSV)** | Synthetic Dataset | 20,000 | 3051.4 KiB | 403.1 KiB | 7.57x | **4** | $15.4307 | $298.14 | **19.3x** | 440.4 ms ± 13.9 ms |
-| **Genomics Variants** | Synthetic Dataset | 8,000 | 946.0 KiB | 163.0 KiB | 5.80x | **2** | $10.7079 | $121.14 | **11.3x** | 143.7 ms ± 3.1 ms |
-| **Academic Metadata (JSON)** | Synthetic Dataset | 5,000 | 825.5 KiB | 74.1 KiB | 11.13x | **1** | $8.3464 | $55.61 | **6.7x** | 103.8 ms ± 1.6 ms |
-| **OpenAlex Academic Works** | Real Dataset | 500 | 207.5 KiB | 50.3 KiB | 4.13x | **1** | $8.3464 | $38.01 | **4.6x** | 11.5 ms ± 0.1 ms |
+| Dataset Name | Type | Records | Canonical Payload Size | Compressed Size | Ratio | Blobs | Blob Cost (USD) | Calldata Cost (USD) | Savings | Encoding Time (Mean ± Std, N=10) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **ML Training Trace (JSON)** | Synthetic Dataset | 10,000 | 1056.1 KiB | 174.9 KiB | 6.04x | **2** | .7079 | .91 | **12.1x** | 207.0 ms ± 3.7 ms |
+| **Climate Station Data (CSV)** | Synthetic Dataset | 20,000 | 3051.4 KiB | 403.1 KiB | 7.57x | **4** | .4307 | .14 | **19.3x** | 423.4 ms ± 11.3 ms |
+| **Genomics Variants** | Synthetic Dataset | 8,000 | 946.0 KiB | 163.0 KiB | 5.80x | **2** | .7079 | .14 | **11.3x** | 139.8 ms ± 0.7 ms |
+| **Academic Metadata (JSON)** | Synthetic Dataset | 5,000 | 825.4 KiB | 74.1 KiB | 11.13x | **1** | .3464 | .61 | **6.7x** | 100.9 ms ± 2.4 ms |
+| **OpenAlex Academic Works** | Real Dataset | 500 | 207.5 KiB | 50.3 KiB | 4.13x | **1** | .3464 | .01 | **4.6x** | 11.7 ms ± 0.2 ms |
+
+> **Note on the OpenAlex row:** The committed source file is 264,057 bytes (257.9 KiB). The pipeline parses it, extracts the documented record fields, and deterministically canonicalizes the records before compression. The canonical payload actually compressed and encoded is 212,517 bytes (207.5 KiB). Compression ratio, blob count, and cost are therefore calculated from canonical payload bytes.
 
 ### 3.3 Explanatory Note on Table A vs Table B Blob Counts
 
-Reviewers comparing Table A and Table B will note that a **1.0 MiB theoretical uncompressed dataset requires 9 blobs**, whereas the **ML Training Trace (1,056 KiB raw) requires only 2 blobs**.
+Reviewers comparing Table A and Table B will note that a **1.0 MiB theoretical uncompressed dataset requires 9 blobs**, whereas the **synthetic ML training trace (1,056 KiB canonical payload) requires only 2 blobs**.
 
 This divergence is solely due to compression:
-1. **Theoretical Uncompressed Baseline (Table A):** Assumes zero compression. With usable body payload capacity of `126,945 bytes/blob` (4,096 elements * 31 bytes minus 31-byte header), posting 1,048,576 uncompressed bytes requires $\lceil 1,048,576 / 126,945 \rceil = \mathbf{9\text{ blobs}}$.
-2. **Measured Compressed Results (Table B):** The ML training telemetry contains recurring structured keys and floating-point coordinates that Zstandard compresses with a `6.04x` ratio, reducing 1,081,484 raw bytes to `179,112 compressed bytes`. Chunking into 126,945-byte payload slots yields $\lceil 179,112 / 126,945 \rceil = \mathbf{2\text{ blobs}}$.
+1. **Theoretical Uncompressed Baseline (Table A):** Assumes theoretical uncompressed data. With usable body payload capacity of 126,945 bytes/blob (4,096 elements * 31 bytes minus 31-byte header), posting 1,048,576 uncompressed bytes requires $\lceil 1,048,576 / 126,945 \rceil = \mathbf{9\text{ blobs}}$.
+2. **Measured Compressed Results (Table B):** The synthetic ML training trace contains recurring structured keys and floating-point coordinates that Zstandard compresses with a 6.04x ratio, reducing 1,081,484 canonical payload bytes to 179,112 compressed bytes. Chunking into 126,945-byte payload slots yields $\lceil 179,112 / 126,945 \rceil = \mathbf{2\text{ blobs}}$.
 
 ---
 
@@ -183,27 +185,24 @@ For data-availability transactions with minimal execution gas:
 
 Under post-Pectra rules, a pure data-posting transaction with low execution gas will usually be charged at or near the EIP-7623 floor rather than the standard calldata cost, so the effective calldata cost for this workload is higher than the Table A baseline and the blob cost advantage is larger than the conservative Table A factor. The magnitude depends on the zero and non-zero byte composition of the specific payload and on the execution gas of the transaction.
 
-Because compressed research data is over 99.6% non-zero, the effective floor for uncompressed calldata posting under EIP-7623 is $\approx 39.88\text{ gas per byte}$, not the 32 gas/byte heuristic previously discussed. Post-Pectra calldata costs for pure DA increase by approximately 2.5x, further widening the economic advantage of blobs. Detailed vectors and calculations are in `benchmarks/calldata_eip7623_sensitivity.csv`.
+Because the measured compressed payload is over 99.6% non-zero bytes, its effective EIP-7623 floor is approximately 39.88 gas per byte. Post-Pectra calldata costs for pure DA increase by approximately 2.5x, further widening the economic advantage of blobs. Detailed vectors and calculations are in `benchmarks/calldata_eip7623_sensitivity.csv`.
 
 ---
 
 ## 7. Testnet Deployment Status
 
-- **Network:** Ethereum Sepolia (Chain ID: 11155111)
-- **Deployment Status:** Deployed and active on Ethereum Sepolia.
-- **Contract Addresses:**
-  - `DatasetRegistry`: [`0x238dE56E52A3F6C6708952052e6a20E5102b4d5b`](https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b) (Tx: [`0xa55af2b2...`](https://sepolia.etherscan.io/tx/0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751), Block: 12006103)
-  - `CalldataSink`: [`0xd501D47b246438A18C8a0BFFCF10338CfBB661a2`](https://sepolia.etherscan.io/address/0xd501D47b246438A18C8a0BFFCF10338CfBB661a2) (Tx: [`0xdaa50cbc...`](https://sepolia.etherscan.io/tx/0xdaa50cbc1299870677cb392ea7cec09853c93eaab4e066b01ede2f369ae7155c))
-  - `SstoreArchive`: [`0x9e1bE1BE26f6Dc22e9EfdCE3b5976E170b80EA9d`](https://sepolia.etherscan.io/address/0x9e1bE1BE26f6Dc22e9EfdCE3b5976E170b80EA9d) (Tx: [`0xa28e4774...`](https://sepolia.etherscan.io/tx/0xa28e47741560697f28d9ac8a78aafbdff95999707f985360832049debb20a14f))
-  - `AnchorRegistry`: [`0x3E999efE07478E11aCDFc19a89f2e29547a69E4d`](https://sepolia.etherscan.io/address/0x3E999efE07478E11aCDFc19a89f2e29547a69E4d) (Tx: [`0x6668067d...`](https://sepolia.etherscan.io/tx/0x6668067dd1fe9f86cad3739865afd60a6c819cf6f59926f978597fc3bb941d0e))
-- **Live EIP-4844 Blob Transaction:**
-  - `Dataset ID`: `0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b`
-  - `Transaction Hash`: [`0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea`](https://sepolia.etherscan.io/tx/0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea)
-  - `Inclusion Block`: 12006195
-  - `KZG Versioned Hash`: `0x010e6c7880a790abbedd746b98b713b5780e8e662d9f57f31cc51671b01faf11`
-  - `Records`: 500 OpenAlex papers (Records Root: `0x6120e0c2...`, Content Hash: `0x46b91d8c...`)
-  - `Blob Gas Used`: 131,072
-- **Deployment Details:** Full artifact logs recorded in `deployments/sepolia_deployment.json`. Step-by-step instructions for broadcasting transactions and retrieving sidecars before the 4,096-epoch pruning deadline are provided in [docs/SEPOLIA_DEPLOYMENT.md](docs/SEPOLIA_DEPLOYMENT.md).
+- **Network:** Ethereum Sepolia, Chain ID 11155111
+- **DatasetRegistry Contract:** [`0x238dE56E52A3F6C6708952052e6a20E5102b4d5b`](https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b) (Contract source verification on Etherscan remains a manual author step).
+- **Deployment Transaction:** [`0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751`](https://sepolia.etherscan.io/tx/0xa55af2b2a6ec29cc706bd8e5ebc166d6ae3130002c183f7ebdbb8186cc834751) (Block 12006103)
+- **Live EIP-4844 Blob Transaction:** [`0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea`](https://sepolia.etherscan.io/tx/0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea)
+- **Dataset ID:** `0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b`
+- **KZG Versioned Hash:** `0x010e6c7880a790abbedd746b98b713b5780e8e662d9f57f31cc51671b01faf11`
+- **Blob Inclusion Block:** 12006195
+- **Blob Gas Used:** 131,072
+- **Records Root:** `0x6120e0c2e0712d0eca82b57aa8581dd02cbbb3bddf8136b7976aa63421544064`
+- **Content Hash:** `0x46b91d8c2a4535a190e8f36f551cdb6f32512dbc1e5b802bb3320aca167ff686`
+- **Retrieval Verification:** Retrieval verified on 2026-10-27 16:28:44 UTC from the local cache: the blob sidecar was retrieved, the dataset was reconstructed, and the reconstructed canonical-payload SHA-256 matched the manifest. (Independent consensus retrieval from public Sepolia beacon nodes encountered upstream gateway errors 500/400, and the public Blobscan Sepolia indexer was lagging at block 11,818,175, ~188k blocks behind live block 12,006,195; the Blobscan link is omitted per protocol criteria).
+- **Deployment Record:** [deployments/sepolia_deployment.json](deployments/sepolia_deployment.json)
 
 ---
 

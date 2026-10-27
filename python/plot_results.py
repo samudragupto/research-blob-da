@@ -130,7 +130,7 @@ def plot_compression_efficiency(
     bars1 = ax1.bar(
         short_names, df["compression_ratio"], color=colors[: len(df)], width=0.55
     )
-    ax1.set_ylabel("Compression Ratio (Raw Size / Compressed Size)")
+    ax1.set_ylabel("Compression Ratio (Canonical Size / Compressed Size)")
     ax1.set_title("Zstandard Compression Ratio by Data Type")
     ax1.set_xticklabels(short_names, rotation=20, ha="right")
     for bar in bars1:

@@ -11,7 +11,7 @@
 
 **Visual:** Terminal in `research-blob-da` root.  
 **Spoken Narration:**
-> "Hello. I am Arrhat Nag. Today I am demonstrating research-blob-da, an open-source prototype using Ethereum EIP-4844 blobs as a cheap, verifiable data-availability primitive for scientific datasets and ML training telemetry. Let us encode 500 real academic metadata records harvested from the OpenAlex API into canonical blob sidecars."
+> "Hello. I am Arrhat Nag. Today I am demonstrating research-blob-da, an open-source prototype using Ethereum EIP-4844 blobs as a cheap, verifiable data-availability primitive for scientific datasets and synthetic ML training traces. Let us encode 500 real academic metadata records harvested from the OpenAlex API into canonical blob sidecars."
 
 **Terminal Command:**
 ```bash

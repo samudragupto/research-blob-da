@@ -273,7 +273,7 @@ To ensure strict clarity for protocol researchers, cost reporting is separated i
 1. **Theoretical Uncompressed Cost Baseline (Table 1A):** Assumes zero compression and calculates required blobs strictly from raw byte payload sizes and the actual usable payload capacity per blob under 31-byte field element packing (126,945 body bytes).
 2. **Measured Compressed Results (Table 1B):** Evaluates real empirical datasets, actual Zstandard compressed stream sizes, actual field element chunking overhead, and actual blobs required.
 
-Cost calculations assume standard documented parameters: ETH Price = $3,000.00 USD, Execution Base Fee = 15.0 gwei, Blob Base Fee = 2.0 gwei, Standard Calldata = 16 gas/byte (plus 21,000 tx base).
+Cost calculations assume standard documented parameters: ETH Price = $3,000.00 USD, Execution Base Fee = 15.0 gwei, Blob Base Fee = 2.0 gwei, standard calldata cost, 4 gas per zero byte and 16 gas per non-zero byte, before application of the EIP-7623 floor (plus 21,000 tx base).
 
 #### Table 1A: Theoretical Uncompressed Cost Baseline (Standard Calldata Before EIP-7623 Floor)
 
@@ -294,21 +294,23 @@ Cost calculations assume standard documented parameters: ETH Price = $3,000.00 U
 #### Table 1B: Measured Compressed Dataset Results
 
 > [!NOTE]
-> **Assumptions:** Canonical record serialization, Zstandard level 3 compression, and 31-byte field element packing (FE31). Blob counts and monetary costs reflect the actual compressed payloads.
+> **Assumptions:** Canonical record serialization, Zstandard level 3 compression, and 31-byte field element packing (FE31). Blob counts, monetary costs, and compression ratios reflect canonical payload bytes actually compressed and posted. Calldata costs represent standard calldata before application of the EIP-7623 floor.
 
-| Dataset Name | Type | Records | Raw Size | Compressed Size | Ratio | Blobs | Blob Cost (USD) | Calldata Cost (USD) | Savings | Encoding Time (Mean ± Std) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **ML Training Trace (JSON)** | Synthetic Dataset | 10,000 | 1056.1 KiB | 174.9 KiB | 6.04x | **2** | $10.7079 | $129.91 | **12.1x** | 225.5 ms ± 6.9 ms |
-| **Climate Station Data (CSV)** | Synthetic Dataset | 20,000 | 3051.4 KiB | 403.1 KiB | 7.57x | **4** | $15.4307 | $298.14 | **19.3x** | 440.4 ms ± 13.9 ms |
-| **Genomics Variants** | Synthetic Dataset | 8,000 | 946.0 KiB | 163.0 KiB | 5.80x | **2** | $10.7079 | $121.14 | **11.3x** | 143.7 ms ± 3.1 ms |
-| **Academic Metadata (JSON)** | Synthetic Dataset | 5,000 | 825.5 KiB | 74.1 KiB | 11.13x | **1** | $8.3464 | $55.61 | **6.7x** | 103.8 ms ± 1.6 ms |
-| **OpenAlex Academic Works** | Real Dataset | 500 | 207.5 KiB | 50.3 KiB | 4.13x | **1** | $8.3464 | $38.01 | **4.6x** | 11.5 ms ± 0.1 ms |
+| Dataset Name | Type | Records | Canonical Payload Size | Compressed Size | Ratio | Blobs | Blob Cost (USD) | Calldata Cost (USD) | Savings | Encoding Time (Mean ± Std, N=10) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **ML Training Trace (JSON)** | Synthetic Dataset | 10,000 | 1056.1 KiB | 174.9 KiB | 6.04x | **2** | $10.7079 | $129.91 | **12.1x** | 207.0 ms ± 3.7 ms |
+| **Climate Station Data (CSV)** | Synthetic Dataset | 20,000 | 3051.4 KiB | 403.1 KiB | 7.57x | **4** | $15.4307 | $298.14 | **19.3x** | 423.4 ms ± 11.3 ms |
+| **Genomics Variants** | Synthetic Dataset | 8,000 | 946.0 KiB | 163.0 KiB | 5.80x | **2** | $10.7079 | $121.14 | **11.3x** | 139.8 ms ± 0.7 ms |
+| **Academic Metadata (JSON)** | Synthetic Dataset | 5,000 | 825.4 KiB | 74.1 KiB | 11.13x | **1** | $8.3464 | $55.61 | **6.7x** | 100.9 ms ± 2.4 ms |
+| **OpenAlex Academic Works** | Real Dataset | 500 | 207.5 KiB | 50.3 KiB | 4.13x | **1** | $8.3464 | $38.01 | **4.6x** | 11.7 ms ± 0.2 ms |
+
+> **Note on the OpenAlex row:** The committed source file is 264,057 bytes (257.9 KiB). The pipeline parses it, extracts the documented record fields, and deterministically canonicalizes the records before compression. The canonical payload actually compressed and encoded is 212,517 bytes (207.5 KiB). Compression ratio, blob count, and cost are therefore calculated from canonical payload bytes.
 
 #### Explanatory Analysis: Resolving the 9-Blob vs. 2-Blob Divergence
 
-A reviewer comparing Table 1A and Table 1B will observe that a 1.0 MiB theoretical uncompressed dataset requires 9 blobs, whereas the 1,056 KiB ML Training Trace requires only 2 blobs. This divergence is mathematically traceable to the compression layer:
-- In the theoretical uncompressed baseline, each blob provides strictly 126,945 usable body bytes. Thus, posting 1,048,576 raw bytes requires $\lceil 1,048,576 / 126,945 \rceil = 9\text{ blobs}$.
-- In the measured empirical workflow, the ML training telemetry contains repetitive dictionary keys and structured numeric values that compress 6.04x under Zstandard level 3, reducing 1,081,484 raw bytes to 179,112 compressed bytes. Chunking this compressed stream yields $\lceil 179,112 / 126,945 \rceil = 2\text{ blobs}$.
+A reviewer comparing Table 1A and Table 1B will observe that a 1.0 MiB theoretical uncompressed dataset requires 9 blobs, whereas the synthetic ML training trace (1,056 KiB canonical payload) requires only 2 blobs. This divergence is mathematically traceable to the compression layer:
+- In the theoretical uncompressed baseline, each blob provides strictly 126,945 usable body bytes. Thus, posting 1,048,576 uncompressed bytes requires $\lceil 1,048,576 / 126,945 \rceil = 9\text{ blobs}$.
+- In the measured empirical workflow, the synthetic ML training trace contains repetitive dictionary keys and structured numeric values that compress 6.04x under Zstandard level 3, reducing 1,081,484 canonical payload bytes to 179,112 compressed bytes. Chunking this compressed stream yields $\lceil 179,112 / 126,945 \rceil = 2\text{ blobs}$.
 
 ![Figure 1: Economic Cost Comparison Across Storage Primitives](file:///c:/Users/user/research-blob-da/docs/figures/figure1_cost_comparison.png)
 
@@ -318,13 +320,13 @@ Table 2 evaluates Zstandard compression and field element packing efficiency acr
 
 #### Table 2: Compression Ratios, Packing Efficiency, and Throughput
 
-| Dataset Type | Records | Raw Size (KiB) | Zstd Size (KiB) | Compression Ratio | Blobs Required | Packing Efficiency | Packing Waste (KiB) | Encoding Time (ms) | Throughput (MiB/s) |
+| Dataset Type | Records | Canonical Payload Size (KiB) | Zstd Size (KiB) | Compression Ratio | Blobs Required | Packing Efficiency | Packing Waste (KiB) | Encoding Time (ms) | Throughput (MiB/s) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **ML Training Trace (Synthetic)** | 10,000 | 1,056.1 | 174.9 | **6.04x** | 2 | 70.6% | 73.0 | 210.6 | **4.90** |
-| **Climate Station Data (Synthetic)** | 20,000 | 3,051.4 | 403.1 | **7.57x** | 4 | 81.3% | 92.8 | 423.8 | **7.03** |
-| **Genomics Variants (Synthetic)** | 8,000 | 946.0 | 163.0 | **5.80x** | 2 | 65.8% | 84.9 | 143.6 | **6.43** |
+| **ML Training Trace (Synthetic)** | 10,000 | 1,056.1 | 174.9 | **6.04x** | 2 | 70.6% | 73.0 | 207.0 | **4.98** |
+| **Climate Station Data (Synthetic)** | 20,000 | 3,051.4 | 403.1 | **7.57x** | 4 | 81.3% | 92.8 | 423.4 | **7.04** |
+| **Genomics Variants (Synthetic)** | 8,000 | 946.0 | 163.0 | **5.80x** | 2 | 65.8% | 84.9 | 139.8 | **6.61** |
 | **Academic Metadata (Synthetic)** | 5,000 | 825.4 | 74.1 | **11.13x** | 1 | 59.8% | 49.8 | 100.9 | **7.99** |
-| **OpenAlex Academic Works (Real)** | 500 | 207.5 | 50.3 | **4.13x** | 1 | 40.6% | 73.7 | 11.3 | **17.93** |
+| **OpenAlex Academic Works (Real)** | 500 | 207.5 | 50.3 | **4.13x** | 1 | 40.6% | 73.7 | 11.7 | **17.36** |
 
 Key findings from Table 2 and Figure 2:
 - Structured tabular data and repeated telemetry keys achieve between **4.13x and 11.13x** compression.
@@ -435,10 +437,10 @@ $$6 \times \text{Tokens} > \text{Execution Gas}$$
 
 Under this floor:
 - Zero bytes cost $1\text{ token} \times 10 = 10\text{ gas per byte}$.
-- Non-zero bytes (which constitute over 99.6% of compressed scientific payloads) cost $4\text{ tokens} \times 10 = 40\text{ gas per byte}$.
-- The effective floor for compressed calldata posting is $\approx 39.88\text{ gas per byte}$. The commonly cited figure of "32 gas per byte" represented an illustrative heuristic assuming a 25% zero-byte mixture.
+- Non-zero bytes cost $4\text{ tokens} \times 10 = 40\text{ gas per byte}$.
+- Because the measured compressed payload is over 99.6% non-zero bytes, its effective EIP-7623 floor is approximately 39.88 gas per byte.
 
-Under post-Pectra rules, a pure data-posting transaction with low execution gas will usually be charged at or near the EIP-7623 floor rather than the standard calldata cost, so the effective calldata cost for this workload is higher than the Table A baseline and the blob cost advantage is larger than the conservative Table A factor. The magnitude depends on the zero and non-zero byte composition of the specific payload and on the execution gas of the transaction. For pure data availability, post-Pectra calldata costs increase by 2.5x (from 16 to 40 gas per non-zero byte), widening the economic savings of blobs from 27.8x to approximately 69x for uncompressed streams. Full sensitivity vectors are documented in `benchmarks/calldata_eip7623_sensitivity.csv`.
+Under post-Pectra rules, a pure data-posting transaction with low execution gas will usually be charged at or near the EIP-7623 floor rather than the standard calldata cost, so the effective calldata cost for this workload is higher than the Table A baseline and the blob cost advantage is larger than the conservative Table A factor. The magnitude depends on the zero and non-zero byte composition of the specific payload and on the execution gas of the transaction. For pure data availability, post-Pectra calldata costs increase by 2.5x (from 16 to 40 gas per non-zero byte), further widening the economic advantage of blobs. Full sensitivity vectors are documented in `benchmarks/calldata_eip7623_sensitivity.csv`.
 
 ### 5.4 Blob Capacity, Transaction Limits, and Inclusion Times
 

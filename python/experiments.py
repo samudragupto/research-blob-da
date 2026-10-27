@@ -866,24 +866,23 @@ def generate_markdown_tables(output_dir: str = "benchmarks") -> str:
 
     md.append(
         "\n> **Note on the OpenAlex row:** The committed source file is 264,057 bytes (257.9 KiB). "
-        "The pipeline parses this file, extracts the documented record fields, and deterministically "
-        "canonicalizes the records before compression. The canonical payload that is actually compressed "
-        "and encoded is therefore smaller than the source file (212,517 bytes / 207.5 KiB). "
-        "Compression ratio, blob count, and cost for this row are calculated from the canonical payload bytes, "
-        "not from the source file bytes. The source file SHA-256 in the manifest verifies the committed source file.\n"
+        "The pipeline parses it, extracts the documented record fields, and deterministically "
+        "canonicalizes the records before compression. The canonical payload actually compressed "
+        "and encoded is 212,517 bytes (207.5 KiB). Compression ratio, blob count, and cost are "
+        "therefore calculated from canonical payload bytes.\n"
     )
 
     md.append("\n### Explanatory Note on Table A vs Table B Blob Counts\n")
     md.append(
         "Reviewers comparing Table A and Table B will note that a **1.0 MiB theoretical uncompressed dataset "
-        "requires 9 blobs**, whereas the **ML Training Trace (1,056 KiB raw) requires only 2 blobs**.\n"
+        "requires 9 blobs**, whereas the **synthetic ML training trace (1,056 KiB canonical payload) requires only 2 blobs**.\n"
         "This divergence is solely due to compression:\n"
-        "1. **Theoretical Uncompressed Baseline (Table A):** Assumes no data compression. With usable "
+        "1. **Theoretical Uncompressed Baseline (Table A):** Assumes theoretical uncompressed data. With usable "
         "payload capacity of `126,945 bytes/blob` (4,096 elements * 31 bytes - 31 bytes header), "
         "posting 1,048,576 uncompressed bytes requires `ceil(1,048,576 / 126,945) = 9 blobs`.\n"
-        "2. **Measured Compressed Results (Table B):** The ML training telemetry contains recurring JSON keys "
+        "2. **Measured Compressed Results (Table B):** The synthetic ML training trace contains recurring JSON keys "
         "and structured floating-point values that Zstandard compresses with a `6.04x` ratio, reducing "
-        "1,081,484 raw bytes to `179,112 compressed bytes`. Chunking into 126,945-byte payload slots yields "
+        "1,081,484 canonical payload bytes to `179,112 compressed bytes`. Chunking into 126,945-byte payload slots yields "
         "`ceil(179,112 / 126,945) = 2 blobs`.\n"
     )
 

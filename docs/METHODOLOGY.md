@@ -128,7 +128,7 @@ $$K = \left\lceil \frac{S}{126,945} \right\rceil$$
    $$\text{Standard Calldata Gas} = 4 \times \text{Tokens}$$
    $$\text{Floor Gas} = 21{,}000 + 10 \times \text{Tokens}$$
    $$\text{Gas Used} = 21{,}000 + \max(\text{Standard Calldata Gas} + \text{Execution Gas}, 10 \times \text{Tokens})$$
-   For data-availability payloads where $\text{Execution Gas}$ is minimal, the floor applies. For non-zero bytes (compressed data), the effective floor is $40\text{ gas per byte}$ (plus 21,000 base). For zero bytes, it is $10\text{ gas per byte}$. The commonly cited "32 gas per byte" was an illustrative heuristic assuming a 25% zero-byte mixture.
+   For data-availability payloads where $\text{Execution Gas}$ is minimal, the floor applies. For non-zero bytes (compressed data), the effective floor is $40\text{ gas per byte}$ (plus 21,000 base). For zero bytes, it is $10\text{ gas per byte}$. Because the measured compressed payload is over 99.6% non-zero bytes, its effective EIP-7623 floor is approximately 39.88 gas per byte.
 
 5. **Fee Sensitivity and Break-Even Blob Fee:**
    The economic break-even blob base fee ($P_{\text{blob}}^{\text{break-even}}$) where blob posting cost equals standard calldata cost is derived by setting $\text{Cost}_{\text{blob}} = \text{Cost}_{\text{calldata}}$:
