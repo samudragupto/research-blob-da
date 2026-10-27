@@ -1,0 +1,11 @@
+{
+  "dataset_name": "real_academic_openalex",
+  "description": "Real academic paper metadata harvested from OpenAlex API",
+  "source": "OpenAlex API (https://openalex.org)",
+  "source_query": "filter=publication_year:2023,is_oa:true&sort=cited_by_count:desc",
+  "retrieval_date": "2026-10-27",
+  "license": "CC0 (Public Domain Dedication for OpenAlex Metadata)",
+  "record_count": 500,
+  "raw_byte_size": 264057,
+  "sha256_checksum": "af65584227c707d3c16f7841a233070808ab1ed070f10f32e841082889a8c544"
+}
