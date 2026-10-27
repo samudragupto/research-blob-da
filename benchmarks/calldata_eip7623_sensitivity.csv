@@ -1,0 +1,10 @@
+payload_size_bytes,payload_size_kib,composition,tokens_in_calldata,standard_calldata_gas,floor_calldata_gas,floor_applied,effective_gas_per_byte
+1024,1.0,All-Zero Calldata (0% Non-zero),1024,4096,10240,True,10.0
+1024,1.0,50/50 Balanced Mixture,2560,10240,25600,True,25.0
+1024,1.0,All Non-Zero / Compressed (100% Non-zero),4096,16384,40960,True,40.0
+65536,64.0,All-Zero Calldata (0% Non-zero),65536,262144,655360,True,10.0
+65536,64.0,50/50 Balanced Mixture,163840,655360,1638400,True,25.0
+65536,64.0,All Non-Zero / Compressed (100% Non-zero),262144,1048576,2621440,True,40.0
+1048576,1024.0,All-Zero Calldata (0% Non-zero),1048576,4194304,10485760,True,10.0
+1048576,1024.0,50/50 Balanced Mixture,2621440,10485760,26214400,True,25.0
+1048576,1024.0,All Non-Zero / Compressed (100% Non-zero),4194304,16777216,41943040,True,40.0

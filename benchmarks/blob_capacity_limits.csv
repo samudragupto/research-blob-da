@@ -1,0 +1,16 @@
+dataset_size_label,case_type,size_bytes,blobs_needed,protocol_regime,target_blobs_per_block,max_blobs_per_block,min_transactions,min_blocks_burst,inclusion_time_burst_sec,min_blocks_target,inclusion_time_target_sec
+128 KiB,Theoretical Uncompressed,131072,2,Cancun (EIP-4844),3,6,1,1,12.0,1,12.0
+128 KiB,Theoretical Uncompressed,131072,2,Pectra (EIP-7691),6,9,1,1,12.0,1,12.0
+128 KiB,Theoretical Uncompressed,131072,2,PeerDAS (EIP-7594 Projection),32,64,1,1,12.0,1,12.0
+1.0 MiB,Theoretical Uncompressed,1048576,9,Cancun (EIP-4844),3,6,2,2,24.0,3,36.0
+1.0 MiB,Theoretical Uncompressed,1048576,9,Pectra (EIP-7691),6,9,1,1,12.0,2,24.0
+1.0 MiB,Theoretical Uncompressed,1048576,9,PeerDAS (EIP-7594 Projection),32,64,1,1,12.0,1,12.0
+5.0 MiB,Theoretical Uncompressed,5242880,42,Cancun (EIP-4844),3,6,7,7,84.0,14,168.0
+5.0 MiB,Theoretical Uncompressed,5242880,42,Pectra (EIP-7691),6,9,5,5,60.0,7,84.0
+5.0 MiB,Theoretical Uncompressed,5242880,42,PeerDAS (EIP-7594 Projection),32,64,1,1,12.0,2,24.0
+20.0 MiB,Theoretical Uncompressed,20971520,166,Cancun (EIP-4844),3,6,28,28,336.0,56,672.0
+20.0 MiB,Theoretical Uncompressed,20971520,166,Pectra (EIP-7691),6,9,19,19,228.0,28,336.0
+20.0 MiB,Theoretical Uncompressed,20971520,166,PeerDAS (EIP-7594 Projection),32,64,3,3,36.0,6,72.0
+1.0 MiB Raw (6x Zstd),Measured Compressed,179200,2,Cancun (EIP-4844),3,6,1,1,12.0,1,12.0
+1.0 MiB Raw (6x Zstd),Measured Compressed,179200,2,Pectra (EIP-7691),6,9,1,1,12.0,1,12.0
+1.0 MiB Raw (6x Zstd),Measured Compressed,179200,2,PeerDAS (EIP-7594 Projection),32,64,1,1,12.0,1,12.0

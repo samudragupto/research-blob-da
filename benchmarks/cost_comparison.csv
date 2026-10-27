@@ -1,5 +1,5 @@
-size_bytes,size_mib,blobs_needed,cost_blob_usd,cost_calldata_usd,cost_calldata_7623_usd,cost_sstore_usd,cost_ipfs_1yr_usd,cost_s3_1yr_usd,blob_savings_vs_calldata_ratio
-131072,0.125,2,10.7079,95.32,236.87,4070.73,2.193,3.9e-05,8.9
-1048576,1.0,9,27.2379,755.92,1888.38,32559.23,2.1945,0.000275,27.8
-5242880,5.0,42,105.1651,3775.82,9438.13,162792.37,2.2015,0.001353,35.9
-20971520,20.0,166,397.9827,15100.44,37749.68,651166.64,2.2279,0.005396,37.9
+size_bytes,size_mib,blobs_needed,cost_blob_usd,cost_calldata_standard_usd,blob_savings_vs_calldata_ratio,sstore_theoretical_extrapolated_usd,sstore_blocks_required_at_30m_gas,cost_ipfs_1yr_usd,cost_s3_1yr_usd
+131072,0.125,2,10.7079,95.32,8.9,4074.42,4,2.193,3.9e-05
+1048576,1.0,9,27.2379,755.92,27.8,32588.72,25,2.1945,0.000275
+5242880,5.0,42,105.1651,3775.82,35.9,162939.83,121,2.2015,0.001353
+20971520,20.0,166,397.9827,15100.44,37.9,651756.47,483,2.2279,0.005396

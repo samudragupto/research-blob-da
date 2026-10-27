@@ -3,10 +3,11 @@ Plotting Script for research-blob-da Academic Evaluation.
 
 Generates publication-quality figures (both high-res PNG and PDF) using Matplotlib & Seaborn:
 - `figure1_cost_comparison.png` / `.pdf`: Log-scale monetary cost comparison across storage primitives.
-- `figure2_compression_efficiency.png` / `.pdf`: Compression ratios and packing efficiency by dataset type.
+- `figure2_compression_efficiency.png` / `.pdf`: Compression ratios and packing efficiency across synthetic and real datasets.
 - `figure3_verification_scaling.png` / `.pdf`: Single-leaf vs range proof verification gas and off-chain latency.
 - `figure4_latency_breakdown.png` / `.pdf`: Stacked latency breakdown as dataset record count scales.
 - `figure5_compression_ablation.png` / `.pdf`: Compression ratio vs encoding latency Pareto frontier.
+- `figure6_fee_sensitivity.png` / `.pdf`: Fee sensitivity curves and break-even blob fee operating envelope.
 """
 
 import os
@@ -40,47 +41,53 @@ plt.rcParams.update(
 def plot_cost_comparison(
     benchmarks_dir: str = "benchmarks", output_dir: str = "benchmarks"
 ) -> None:
-    csv_path = os.path.join(benchmarks_dir, "cost_comparison.csv")
+    csv_path = os.path.join(benchmarks_dir, "cost_comparison_uncompressed.csv")
+    if not os.path.exists(csv_path):
+        csv_path = os.path.join(benchmarks_dir, "cost_comparison.csv")
     if not os.path.exists(csv_path):
         print(f"Skipping plot_cost_comparison: {csv_path} not found")
         return
     df = pd.read_csv(csv_path)
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(8.5, 5.2))
 
     x = np.arange(len(df))
-    width = 0.16
+    width = 0.18
+
+    calldata_col = (
+        "cost_calldata_standard_usd"
+        if "cost_calldata_standard_usd" in df.columns
+        else "cost_calldata_usd"
+    )
+    sstore_col = (
+        "sstore_theoretical_extrapolated_usd"
+        if "sstore_theoretical_extrapolated_usd" in df.columns
+        else "cost_sstore_usd"
+    )
 
     ax.bar(
-        x - 2 * width,
+        x - 1.5 * width,
         df["cost_blob_usd"],
         width,
         label="EIP-4844 Blobs",
         color="#1f77b4",
     )
     ax.bar(
-        x - width,
-        df["cost_calldata_usd"],
+        x - 0.5 * width,
+        df[calldata_col],
         width,
-        label="Calldata (Standard)",
+        label="Calldata (Standard 16 gas/byte)",
         color="#ff7f0e",
     )
     ax.bar(
-        x,
-        df["cost_calldata_7623_usd"],
+        x + 0.5 * width,
+        df[sstore_col],
         width,
-        label="Calldata (EIP-7623 Floor)",
-        color="#d62728",
-    )
-    ax.bar(
-        x + width,
-        df["cost_sstore_usd"],
-        width,
-        label="SSTORE Permanent",
+        label="Theoretical SSTORE Extrapolation*",
         color="#9467bd",
     )
     ax.bar(
-        x + 2 * width,
+        x + 1.5 * width,
         df["cost_ipfs_1yr_usd"],
         width,
         label="IPFS + On-chain CID (1 yr)",
@@ -88,13 +95,15 @@ def plot_cost_comparison(
     )
 
     ax.set_ylabel("Publication Cost (USD, Log Scale)")
-    ax.set_title("Publication Cost Comparison Across Storage Primitives")
+    ax.set_title(
+        "Publication Cost Comparison Across Storage Primitives (Table A Baseline)"
+    )
     ax.set_xticks(x)
     ax.set_xticklabels(
         [f"{mib:.2f} MiB" if mib < 1 else f"{int(mib)} MiB" for mib in df["size_mib"]]
     )
     ax.set_yscale("log")
-    ax.legend(frameon=True, facecolor="white", framealpha=0.9)
+    ax.legend(frameon=True, facecolor="white", framealpha=0.9, loc="upper left")
 
     plt.tight_layout()
     for ext in ["png", "pdf"]:
@@ -112,16 +121,18 @@ def plot_compression_efficiency(
         return
     df = pd.read_csv(csv_path)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.8))
 
     short_names = [n.split(" (")[0] for n in df["dataset_type"]]
-    colors = ["#2b5c8f", "#388e3c", "#d32f2f", "#7b1fa2"]
+    colors = ["#2b5c8f", "#388e3c", "#d32f2f", "#7b1fa2", "#e65100"]
 
     # 1. Compression ratio
-    bars1 = ax1.bar(short_names, df["compression_ratio"], color=colors, width=0.55)
+    bars1 = ax1.bar(
+        short_names, df["compression_ratio"], color=colors[: len(df)], width=0.55
+    )
     ax1.set_ylabel("Compression Ratio (Raw Size / Compressed Size)")
     ax1.set_title("Zstandard Compression Ratio by Data Type")
-    ax1.set_xticklabels(short_names, rotation=15, ha="right")
+    ax1.set_xticklabels(short_names, rotation=20, ha="right")
     for bar in bars1:
         yval = bar.get_height()
         ax1.text(
@@ -134,10 +145,12 @@ def plot_compression_efficiency(
         )
 
     # 2. Packing efficiency
-    bars2 = ax2.bar(short_names, df["packing_efficiency_pct"], color=colors, width=0.55)
+    bars2 = ax2.bar(
+        short_names, df["packing_efficiency_pct"], color=colors[: len(df)], width=0.55
+    )
     ax2.set_ylabel("Blob Space Utilization (%)")
     ax2.set_title("Blob Payload Packing Efficiency (FE31)")
-    ax2.set_xticklabels(short_names, rotation=15, ha="right")
+    ax2.set_xticklabels(short_names, rotation=20, ha="right")
     ax2.set_ylim(0, 105)
     for bar in bars2:
         yval = bar.get_height()
@@ -167,7 +180,6 @@ def plot_verification_scaling(
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
 
-    # 1. On-chain gas scaling
     ax1.plot(
         df["tree_depth"],
         df["estimated_onchain_gas"],
@@ -190,7 +202,6 @@ def plot_verification_scaling(
     ax1.set_title("On-Chain Merkle Proof Verification Gas")
     ax1.legend()
 
-    # 2. Off-chain latency with error bars
     ax2.errorbar(
         df["tree_depth"],
         df["offchain_verify_mean_us"],
@@ -303,6 +314,84 @@ def plot_compression_ablation(
     print("Generated figure5_compression_ablation")
 
 
+def plot_fee_sensitivity(
+    benchmarks_dir: str = "benchmarks", output_dir: str = "benchmarks"
+) -> None:
+    csv_path = os.path.join(benchmarks_dir, "fee_sensitivity.csv")
+    if not os.path.exists(csv_path):
+        print(f"Skipping plot_fee_sensitivity: {csv_path} not found")
+        return
+    df = pd.read_csv(csv_path)
+    df_1m = df[df["size_mib"] == 1.0]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+    base_fees = [10.0, 15.0, 25.0, 50.0]
+    colors = ["#1f77b4", "#2ca02c", "#ff7f0e", "#d62728"]
+
+    for bf, col in zip(base_fees, colors):
+        sub = df_1m[df_1m["base_fee_gwei"] == bf].sort_values("blob_fee_gwei")
+        ax1.plot(
+            sub["blob_fee_gwei"],
+            sub["savings_ratio"],
+            marker="o",
+            label=f"Base Fee = {int(bf)} gwei",
+            color=col,
+            linewidth=2,
+        )
+
+    ax1.axhline(
+        1.0, color="gray", linestyle="--", linewidth=1.5, label="Break-Even (1.0x)"
+    )
+    ax1.set_xlabel("Blob Base Fee (gwei)")
+    ax1.set_ylabel("Blob Savings Ratio vs. Calldata (x)")
+    ax1.set_title("Savings Ratio Sensitivity (1.0 MiB Dataset)")
+    ax1.set_xscale("log")
+    ax1.set_yscale("log")
+    ax1.legend(frameon=True, facecolor="white", framealpha=0.9)
+
+    # Subplot 2: Break-even curve
+    base_range = np.linspace(5, 100, 50)
+    # Ratio for 1.0 MiB is ~13.86
+    breakeven_blobs = 13.859 * base_range
+
+    ax2.plot(
+        base_range,
+        breakeven_blobs,
+        color="#005580",
+        linewidth=2.5,
+        label="Break-Even Boundary",
+    )
+    ax2.fill_between(
+        base_range,
+        0,
+        breakeven_blobs,
+        color="#cce5ff",
+        alpha=0.6,
+        label="Blob Advantage Region (Blobs Cheaper)",
+    )
+    ax2.fill_between(
+        base_range,
+        breakeven_blobs,
+        1500,
+        color="#ffe6e6",
+        alpha=0.4,
+        label="Calldata Advantage Region (Extreme Congestion)",
+    )
+
+    ax2.set_xlabel("Execution Base Fee (gwei)")
+    ax2.set_ylabel("Break-Even Blob Base Fee (gwei)")
+    ax2.set_title("Economic Operating Envelope (1.0 MiB Payload)")
+    ax2.set_ylim(0, 1400)
+    ax2.legend(loc="upper left", frameon=True, facecolor="white", framealpha=0.9)
+
+    plt.tight_layout()
+    for ext in ["png", "pdf"]:
+        fig.savefig(os.path.join(output_dir, f"figure6_fee_sensitivity.{ext}"))
+    plt.close(fig)
+    print("Generated figure6_fee_sensitivity")
+
+
 def generate_all_plots(
     benchmarks_dir: str = "benchmarks", output_dir: str = "benchmarks"
 ) -> None:
@@ -312,6 +401,7 @@ def generate_all_plots(
     plot_verification_scaling(benchmarks_dir, output_dir)
     plot_latency_breakdown(benchmarks_dir, output_dir)
     plot_compression_ablation(benchmarks_dir, output_dir)
+    plot_fee_sensitivity(benchmarks_dir, output_dir)
     print("All plots generated successfully.")
 
 
