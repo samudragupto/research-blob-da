@@ -1,7 +1,7 @@
 dataset_id,dataset_name,canonical_bytes,compressed_bytes,compression_ratio,blobs_needed,packing_waste_pct,encoding_mean_ms,encoding_std_ms,encoding_median_ms,encoding_ci95_low,encoding_ci95_high,decoding_mean_ms,throughput_mib_s,peak_memory_mib,blob_cost_usd,calldata_cost_usd,cost_savings_ratio
 real_scholarly_openalex,OpenAlex Scholarly Works Metadata,272997,52649,5.19,1,59.83,1.5,0.09,1.48,1.46,1.56,0.76,173.11,0.0,1.7314,38.8523,22.44
-real_climate_sensor,Atmospheric & Environmental Sensor Observations,1051953,104055,10.11,1,20.61,3.0,0.2,2.93,2.91,3.14,1.44,334.14,0.0,1.7314,75.8646,43.82
-real_ml_training_trace,Transformer Model Training Step Trace,531339,91967,5.78,1,29.83,2.63,0.15,2.6,2.56,2.73,1.06,192.37,0.0,1.7314,67.1612,38.79
+synthetic_climate_sensor_noaa_format,Atmospheric & Environmental Sensor Observations (Synthetic NOAA Format),1051953,104055,10.11,1,20.61,3.0,0.2,2.93,2.91,3.14,1.44,334.14,0.0,1.7314,75.8646,43.82
+synthetic_ml_training_trace,Transformer Model Training Step Trace (Synthetic PyTorch Format),531339,91967,5.78,1,29.83,2.63,0.15,2.6,2.56,2.73,1.06,192.37,0.0,1.7314,67.1612,38.79
 synthetic_scale_110k,Deterministic Scaling Synthetic Dataset (110 KiB),113198,12788,8.85,1,90.24,0.55,0.04,0.53,0.52,0.57,0.58,197.76,0.0,1.7314,10.1524,5.86
 synthetic_scale_1137k,Deterministic Scaling Synthetic Dataset (1137 KiB),1164844,132830,8.77,2,49.33,4.48,0.37,4.26,4.29,4.7,2.09,247.97,0.0,3.4629,96.5826,27.89
 synthetic_scale_5712k,Deterministic Scaling Synthetic Dataset (5712 KiB),5849730,670236,8.73,6,14.78,31.72,0.67,31.92,31.34,32.08,9.03,175.9,0.0,10.3886,483.5149,46.54

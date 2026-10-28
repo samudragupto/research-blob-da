@@ -40,7 +40,7 @@ This document establishes the experimental protocol for all local, network, retr
 - **Throughput**: End-to-end preparation and reconstruction throughput ($\text{MiB/s}$).
 - **Memory Footprint**: Peak resident set size (RSS in $\text{MiB}$).
 - **Packing Efficiency**: Usable payload bytes divided by total allocated blob bytes ($\%$).
-- **Blob Count**: Number of 128 KiB EIP-4844 blobs required ($N_{\text{blobs}} = \lceil \text{PackedBytes} / 131,072 \rceil$).
+- **Blob Count**: Number of 128 KiB EIP-4844 blobs required ($N_{\text{blobs}} = \max(1, \lceil \text{PayloadBytes} / \text{UsableBytesPerBlob} \rceil)$, where $\text{UsableBytesPerBlob} = 126,945\text{ bytes}$ for FE31 derived from $126,976\text{ bytes} - 31\text{-byte header}$ in Field Element 0).
 - **Verification Latency & Gas**: Gas consumption for contract entrypoints (`openDataset`, `appendExternalBlobs`, `finalizeDataset`, `verifyRecord`).
 - **Network Metrics**: Time-to-inclusion ($\text{seconds}$), blob gas used, execution gas used, effective gas price.
 - **Retrieval Metrics**: Sidecar retrieval latency ($\text{ms}$), retrieval success rate ($\%$), HTTP status codes.

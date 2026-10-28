@@ -35,6 +35,41 @@ HEADER_MAGIC = b"RBDA"  # 0x52424441
 HEADER_VERSION = 1
 HEADER_SIZE = 31
 
+# Usable payload bytes per blob body after reserving 31 bytes in Field Element 0 for header:
+# FE31: (4096 * 31) - 31 = 126,976 - 31 = 126,945 bytes
+# FE254: ((4096 * 254) // 8) - 31 = 130,048 - 31 = 130,017 bytes
+BODY_CAPACITY_FE31 = USABLE_BYTES_FE31 - HEADER_SIZE  # 126,945 bytes
+BODY_CAPACITY_FE254 = USABLE_BYTES_FE254 - HEADER_SIZE  # 130,017 bytes
+
+
+def get_usable_payload_bytes_per_blob(packing: int | str = 0) -> int:
+    """Returns exact usable payload body bytes per blob.
+
+    Exact mathematical formula:
+        Total packed bytes across 4096 field elements:
+            - FE31: 4096 elements * 31 bytes/element = 126,976 bytes
+            - FE254: (4096 elements * 254 bits/element) // 8 = 130,048 bytes
+        Field Element 0 holds the 31-byte domain-separated RBDA header.
+        Therefore, usable payload bytes available for dataset data per blob are:
+            - FE31: 126,976 - 31 = 126,945 bytes
+            - FE254: 130,048 - 31 = 130,017 bytes
+    """
+    if isinstance(packing, str):
+        is_dense = packing.lower() in ("fe254", "dense", "1")
+    else:
+        is_dense = packing == 1
+    return BODY_CAPACITY_FE254 if is_dense else BODY_CAPACITY_FE31
+
+
+def calculate_blob_count(payload_bytes: int, packing: int | str = 0) -> int:
+    """Calculates blob count from payload bytes using the encoder's exact capacity:
+
+    blobs = max(1, ceil(payload_bytes / usable_bytes_per_blob))
+    """
+    usable = get_usable_payload_bytes_per_blob(packing)
+    return max(1, math.ceil(payload_bytes / usable))
+
+
 # Try importing ckzg for official KZG commitments if available
 try:
     import ckzg  # noqa: F401
@@ -350,13 +385,10 @@ def encode_dataset(
         raise ValueError(f"Unsupported codec: {codec}")
 
     # 4. Chunking into blobs
-    # In each blob, field element 0 carries the 31-byte header.
-    # Usable payload bytes per blob body:
-    usable_per_blob = USABLE_BYTES_FE254 if packing == 1 else USABLE_BYTES_FE31
-    body_capacity_per_blob = usable_per_blob - HEADER_SIZE
-
+    # Field Element 0 carries the 31-byte header; body capacity is derived from exact packing rules.
+    body_capacity_per_blob = get_usable_payload_bytes_per_blob(packing)
     total_encoded_len = len(compressed_stream)
-    blob_count = max(1, math.ceil(total_encoded_len / body_capacity_per_blob))
+    blob_count = calculate_blob_count(total_encoded_len, packing)
 
     blobs: list[bytes] = []
     versioned_hashes: list[bytes] = []
