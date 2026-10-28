@@ -48,3 +48,13 @@ The following non-negotiable rules govern all work on this repository:
   - Frozen v0.1.0 Benchmark Evidence: 100% SHA-256 hash match, zero modifications
   - Journal Extension Artifacts: Contained strictly within `research/journal-extension` branch
 
+## 5. Integrity Audit Baseline
+
+- **Audit Initialization Timestamp**: 2026-10-28T19:01:13+05:30
+- **Working Branch**: `research/journal-extension`
+- **Verified `origin/main` Commit**: `ad8fefa6157d9e3befa6062fc01ac36f5bfa22f1`
+- **Verified `v0.1.0^{commit}` Commit**: `428c7898dd5e5078ad466fa6955058936b33aac3`
+- **Journal Extension Pre-Audit HEAD**: `04c23f67c0a717ae2e8e5b5c4ecc563bbb670c51`
+- **Isolation Invariant**: Zero writes to `main`, zero tag movements. All integrity corrections isolated to `research/journal-extension`.
+
+

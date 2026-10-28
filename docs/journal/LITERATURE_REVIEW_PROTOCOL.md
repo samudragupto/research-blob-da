@@ -1,6 +1,6 @@
-# Systematic Literature Review Protocol
+# Preliminary Related-Work Survey Protocol
 
-This protocol defines the systematic search, filtering, evaluation, and categorization methodology for related work in `research-blob-da`.
+This protocol defines the search, filtering, evaluation, and categorization methodology for the preliminary survey of related work cited in `research-blob-da`.
 
 ---
 
@@ -46,8 +46,8 @@ The review evaluates research at the intersection of:
 
 Existing EIP-4844 research focuses almost exclusively on **Layer-2 Rollups** (e.g., Optimism, Arbitrum, Base, Starknet), evaluating how blob gas markets compress transaction settlement costs for financial rollups.
 
-**The specific novelty of `research-blob-da` is:**
-> To our knowledge, this is one of the first reproducible evaluations of EIP-4844 blobs as a temporary publication layer for structured scientific and machine-learning research artifacts, combined with a dual-horizon content-addressed archival bridge for long-term preservation.
+**The specific novelty positioning of `research-blob-da` is:**
+> To our knowledge, based on a preliminary survey of the literature cited in this work, this is among the early evaluations of EIP-4844 blobs as a temporary publication layer for structured research artifacts. A systematic review remains future work.
 
 Prior works that narrowed this claim:
 - Rollup cost studies (e.g. L2Beat, Dune Analytics) focus solely on transaction batches rather than structured scientific schemas.

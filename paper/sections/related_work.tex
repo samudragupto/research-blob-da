@@ -15,3 +15,5 @@ In our architecture, these networks are not viewed as competitors to blobs, but 
 
 \subsection{Scientific Artifact Provenance and DeSci}
 The Decentralized Science (DeSci) movement seeks to make scientific workflows transparent, immutable, and verifiable~\cite{wilkinson2016fair,priem2022openalex}. Existing DeSci implementations typically store raw artifact files on IPFS and record the resulting CID string in an on-chain smart contract registry. However, this pattern provides no guarantee that the data behind the CID was actually available to network observers at transaction time. By publishing initial research artifacts directly through EIP-4844 blobs, our framework guarantees consensus-level availability during the peer-review and replication window, anchoring data integrity to Ethereum's security threshold.
+
+To our knowledge, based on a preliminary survey of the literature cited in this work, this is among the early evaluations of EIP-4844 blobs as a temporary publication layer for structured research artifacts. A systematic review remains future work.
