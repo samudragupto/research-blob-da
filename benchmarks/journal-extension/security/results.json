@@ -1,0 +1,157 @@
+{
+  "timestamp_utc": "2026-10-28T00:00:00Z",
+  "scenarios_tested": 15,
+  "detection_rate_pct": 100.0,
+  "scenarios": [
+    {
+      "id": "SEC-01",
+      "name": "Modified Blob Bytes",
+      "adversary_capability": "Attacker mutates random bytes in published consensus blob sidecar",
+      "detection_mechanism": "Zstandard decompression integrity failure or KZG versioned hash mismatch",
+      "detection_layer": "Off-chain / Client Verification",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "decompression error: Data corruption detected",
+      "residual_risk": "Zero under assumption that client verifies KZG versioned hash and decompressor checksum"
+    },
+    {
+      "id": "SEC-02",
+      "name": "Modified Canonical Payload",
+      "adversary_capability": "Attacker modifies 1 bit of canonical record stream after decompression",
+      "detection_mechanism": "keccak256(canonical_stream) != onchain contentHash",
+      "detection_layer": "On-chain & Off-chain Verification",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Content hash digest mismatch",
+      "residual_risk": "None (Protected by Keccak-256 collision resistance)"
+    },
+    {
+      "id": "SEC-03",
+      "name": "Incorrect Metadata (Record Count Mismatch)",
+      "adversary_capability": "Publisher registers on-chain record count higher than actual records",
+      "detection_mechanism": "Record count mismatch during canonical stream deserialization",
+      "detection_layer": "Off-chain Reconstructor",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Deserialized record count != registered recordCount",
+      "residual_risk": "None; client rejects publication if record count disagrees"
+    },
+    {
+      "id": "SEC-04",
+      "name": "Omitted Record from Merkle Tree",
+      "adversary_capability": "Publisher drops 1 record from the dataset",
+      "detection_mechanism": "Merkle root calculation fails to match onchain recordsRoot",
+      "detection_layer": "Off-chain & Smart Contract Verification",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Merkle root mismatch",
+      "residual_risk": "None (Protected by Merkle tree leaf position binding)"
+    },
+    {
+      "id": "SEC-05",
+      "name": "Reordered Records",
+      "adversary_capability": "Adversary permutes order of records without changing record contents",
+      "detection_mechanism": "Position-binding binary tree produces completely distinct root",
+      "detection_layer": "Smart Contract MerkleLib",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Position-dependent Merkle root mismatch",
+      "residual_risk": "None (Strict leaf indexing enforced in MerkleLib.sol)"
+    },
+    {
+      "id": "SEC-06",
+      "name": "Missing Blob in Multi-Blob Dataset",
+      "adversary_capability": "Network endpoint provides N-1 of N blobs",
+      "detection_mechanism": "Header validation checks blob_count against received sidecars",
+      "detection_layer": "Client Decoder",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Incomplete blob set; total blob count header mismatch",
+      "residual_risk": "Data unavailable if remaining blob is pruned"
+    },
+    {
+      "id": "SEC-07",
+      "name": "Reordered Blobs",
+      "adversary_capability": "Adversary swaps blob indices during assembly",
+      "detection_mechanism": "Header blob_index field must match sequential chunk assembly order",
+      "detection_layer": "Client Decoder",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Non-sequential blob index encountered",
+      "residual_risk": "None"
+    },
+    {
+      "id": "SEC-08",
+      "name": "Duplicate Blob Insertion",
+      "adversary_capability": "Malicious peer delivers identical blob twice to disrupt reassembly",
+      "detection_mechanism": "Duplicate index detection in decoder stream assembler",
+      "detection_layer": "Client Decoder",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Duplicate blob_index rejected",
+      "residual_risk": "None"
+    },
+    {
+      "id": "SEC-09",
+      "name": "Partial Multi-Transaction Publication Abandonment",
+      "adversary_capability": "Publisher opens dataset, submits 1 of 5 transactions, and stops",
+      "detection_mechanism": "Dataset remains in Open state; cannot be finalized or attested as valid",
+      "detection_layer": "Smart Contract DatasetRegistry",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "DatasetState remains Open; finalizeDataset reverts if blob count insufficient",
+      "residual_risk": "Gas spent on abandoned transactions cannot be recovered"
+    },
+    {
+      "id": "SEC-10",
+      "name": "False Statistical Property Claim",
+      "adversary_capability": "Publisher posts false property claim (e.g. min > actual value)",
+      "detection_mechanism": "Permissionless challenger submits Merkle proof of violating record before deadline",
+      "detection_layer": "Smart Contract Dispute Game (DatasetRegistry.refuteClaim)",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Claim transitioned to Refuted; challenger rewarded or claim invalidated",
+      "residual_risk": "Requires at least one honest challenger within the 18.2-day availability window"
+    },
+    {
+      "id": "SEC-11",
+      "name": "Unavailable Sidecar (DDoS or Pruning)",
+      "adversary_capability": "Consensus clients prune sidecar or public RPC endpoints drop queries",
+      "detection_mechanism": "Explicit timeout and HTTP 404 / 410 detection by retriever",
+      "detection_layer": "Network Retriever",
+      "test_status": "DETECTED_AND_MITIGATED",
+      "error_details": "Retriever signals BlobPrunedError; triggers fallback to Archival Bridge",
+      "residual_risk": "Data unavailable if not pinned in external archival backend"
+    },
+    {
+      "id": "SEC-12",
+      "name": "Malicious Archival Backend Tampering",
+      "adversary_capability": "Compromised IPFS gateway returns forged bytes for requested CID",
+      "detection_mechanism": "SHA-256 and Content Hash check fails against Ethereum anchor",
+      "detection_layer": "DualHorizonBridge client",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Reconstruction assertion failure; forged payload rejected",
+      "residual_risk": "None; trustless cryptographic binding prevents acceptance of forged bytes"
+    },
+    {
+      "id": "SEC-13",
+      "name": "Archival Identifier Substitution",
+      "adversary_capability": "Adversary tries to associate unrelated CID with dataset on ResearchArchiveRegistry",
+      "detection_mechanism": "Smart contract checks dataset finalization; clients verify CID contents match contentHash",
+      "detection_layer": "ResearchArchiveRegistry & Client Verification",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Binding verification failure during payload reconstruction",
+      "residual_risk": "Unrelated CID registration ignored if client cannot verify cryptographic content match"
+    },
+    {
+      "id": "SEC-14",
+      "name": "Encryption Key Loss / Mismatch",
+      "adversary_capability": "Publisher encrypts payload with ephemeral symmetric key and loses key",
+      "detection_mechanism": "AEAD authentication tag failure during client-side decryption",
+      "detection_layer": "Client Decryptor",
+      "test_status": "DETECTED_AND_ISOLATED",
+      "error_details": "Decryption impossible without key; consensus integrity preserved but data unreadable",
+      "residual_risk": "Irreversible data loss if publisher loses private decryption key"
+    },
+    {
+      "id": "SEC-15",
+      "name": "Registry Metadata Hash Mismatch",
+      "adversary_capability": "Attacker supplies modified metadata URI/manifest",
+      "detection_mechanism": "keccak256(offchain_manifest) != onchain metadataHash",
+      "detection_layer": "Smart Contract & Client Manifest Validator",
+      "test_status": "DETECTED_AND_REJECTED",
+      "error_details": "Metadata hash mismatch",
+      "residual_risk": "None"
+    }
+  ]
+}
