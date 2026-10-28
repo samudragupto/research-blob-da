@@ -1,0 +1,20 @@
+\section{Security Evaluation and Threat Analysis}
+\label{sec:security}
+
+We evaluate the resilience of `research-blob-da` against adversarial corruption, omission, and fraud through formal threat modeling and empirical test suites.
+
+\input{tables/table_security.tex}
+
+\subsection{Adversarial Scenario Analysis}
+Table~\ref{tab:security_matrix} details our evaluation across 15 distinct threat scenarios (SEC-01 through SEC-15). The system achieved a \textbf{$100.0\%$ detection rate} across all simulated attack vectors:
+
+\begin{enumerate}
+    \item \textbf{Bit Flips and Payload Mutation (SEC-01, SEC-02)}: Any bit flip within a blob sidecar triggers a Zstandard frame integrity failure or KZG point verification rejection. Modifying canonical bytes post-decompression causes an immediate mismatch against the on-chain \texttt{contentHash}.
+    \item \textbf{Record Permutation and Omission (SEC-04, SEC-05)}: The position-binding binary Merkle tree incorporates strict index-dependent domain separation. Omitted or permuted records alter parent nodes up to the root, preventing verification against \texttt{recordsRoot}.
+    \item \textbf{Stream Framing and Chunk Assembly (SEC-06--SEC-08)}: The 31-byte header in Field Element 0 embeds \texttt{blob\_index} and \texttt{blob\_count}. Out-of-order chunks, omitted blobs, or duplicate chunk injections are rejected during initial client stream assembly.
+    \item \textbf{Dispute Game Refutation (SEC-10)}: If an adversary publishes an optimistic property claim that contradicts experimental data (e.g., claiming all model loss values $\le 1.0$ when step 42 had loss 2.8), an honest observer needs only to submit the Merkle proof for step 42 to \texttt{DatasetRegistry.refuteClaim}. The smart contract evaluates the proof in a single transaction, permanently marking the claim as \texttt{Refuted}.
+    \item \textbf{Archival Gateway Tampering (SEC-12, SEC-13)}: If an IPFS gateway or malicious storage provider serves altered bytes for a requested CID, the client verifies the retrieved payload against the Ethereum on-chain \texttt{contentHash} and \texttt{recordsRoot}. Forged bytes are discarded before ingestion.
+\end{enumerate}
+
+\subsection{Availability Honesty and Residual Boundaries}
+We explicitly emphasize that cryptographic proofs prove \textit{commitment consistency}, not \textit{perpetual data availability}. If all consensus peers prune a blob and no archival bridge node retains the data, the artifact becomes permanently unrecoverable. Our architecture mitigates this boundary through dual-horizon registration, ensuring that researchers can verify external archival replicas against L1 commitments without relying on trusted central authorities.

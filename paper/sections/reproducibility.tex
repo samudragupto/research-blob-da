@@ -1,0 +1,34 @@
+\section{Reproducibility and Artifact Availability}
+\label{sec:reproducibility}
+
+In accordance with rigorous open-science standards, all software, smart contracts, benchmark harnesses, and raw evaluation datasets are publicly available:
+\begin{itemize}
+    \item \textbf{Repository}: \url{https://github.com/samudragupto/research-blob-da}
+    \item \textbf{Git Working Branch}: \texttt{research/journal-extension}
+    \item \textbf{Historical Release Baseline}: Tag \texttt{v0.1.0} (\texttt{0b523e7...}, commit \texttt{428c789...})
+    \item \textbf{Environment Manifest}: Machine-readable environment capture in \texttt{benchmarks/journal-extension/manifests/environment.json}.
+    \item \textbf{Raw Benchmark Datasets}: Raw trial-level CSV and JSON records preserved under \texttt{benchmarks/journal-extension/local/}, \texttt{retrieval/}, \texttt{archival/}, and \texttt{security/}.
+\end{itemize}
+
+\subsection{Reproduction Commands}
+The entire experimental evaluation and verification pipeline can be reproduced offline using standard command-line tools:
+\begin{verbatim}
+# 1. Smart Contract Test Suites (36 passing tests)
+forge test
+
+# 2. Python Test Suite (49 passing tests)
+pytest
+
+# 3. Environment Capture and Local Benchmark Matrix
+python python/capture_environment.py
+python python/prepare_journal_datasets.py
+python python/journal_experiments.py
+
+# 4. Archival Bridge and Security Threat Evaluation
+python python/archival_bridge.py
+python python/adversarial_evaluation.py
+
+# 5. Paper Table and Figure Generation
+python python/generate_paper_artifacts.py
+\end{verbatim}
+All commands execute deterministically without requiring live network access or paid RPC credentials.

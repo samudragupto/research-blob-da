@@ -1,0 +1,33 @@
+\section{Background and Protocol Fundamentals}
+\label{sec:background}
+
+\subsection{EIP-4844 and Proto-Danksharding}
+Ethereum EIP-4844 introduced Type-3 transactions carrying opaque binary payloads known as \textit{blobs}~\cite{buterin2022eip4844}. Under the initial Cancun/Deneb activation, blocks target 3 blobs (384~KiB) with a hard maximum of 6 blobs (768~KiB). Unlike standard transaction calldata, blob payloads are not accessible directly to the Ethereum Virtual Machine (EVM) via execution opcodes, nor are they retained in perpetual execution state. Instead, execution contracts interact with blobs exclusively through the \texttt{BLOBHASH} opcode, which returns the 32-byte versioned hash of a blob carried by the current transaction.
+
+\subsection{KZG Polynomial Commitments and Field Modulus Constraints}
+Each blob consists of exactly 4,096 field elements in the scalar field of the BLS12-381 elliptic curve construction. Each field element occupies 32 bytes ($4,096 \times 32 = 131,072$~bytes / 128~KiB). The BLS12-381 scalar field modulus $p$ is defined as:
+\begin{align}
+p &= \mathtt{0x73eda753299d7d483339d80809a1d805} \nonumber \\
+  &\quad \mathtt{53bda402fffe5bfeffffffff00000001} \approx 5.24 \times 10^{76}
+\end{align}
+Because $2^{254} < p < 2^{255}$, arbitrary 32-byte binary sequences may exceed $p$. If an element $\ge p$ is passed to consensus clients, KZG commitment generation or point evaluation precompile calls revert immediately. Consequently, application-level payloads require modulus-safe packing.
+
+A blob's cryptographic identity is anchored by its KZG commitment $C \in \mathbb{G}_1$. The Ethereum consensus layer derives the versioned hash $H_v$ by taking the SHA-256 digest of $C$, replacing the first byte with the protocol version identifier \texttt{0x01}:
+\begin{equation}
+H_v = \texttt{0x01} \parallel \text{SHA-256}(C)[1:32]
+\end{equation}
+
+\subsection{The 4,096-Epoch Availability Window}
+Consensus layer clients (Prysm, Lighthouse, Teku, Lodestar, Nimbus) propagate blob sidecars across a dedicated P2P gossipsub network. Crucially, consensus specifications require clients to retain blob sidecars for only 4,096 epochs:
+\begin{align}
+T_{\text{avail}} &= 4,096 \text{ epochs} \times 32 \text{ slots/epoch} \times 12 \text{ s/slot} \nonumber \\
+&= 1,572,864 \text{ s} \approx 18.2 \text{ days}
+\end{align}
+After $T_{\text{avail}}$, consensus nodes prune blob sidecars from disk storage. While the on-chain versioned hash remains permanently stored in historical block headers, the underlying data bytes become unavailable from standard consensus clients.
+
+\subsection{Multidimensional EIP-1559 and Blob Gas Economics}
+EIP-4844 established a separate, independent EIP-1559 fee market for blob gas~\cite{roughgarden2021eip1559}. A single blob consumes exactly 131,072 blob gas. The blob base fee $f_{\text{blob}}$ floats dynamically according to exponential target tracking:
+\begin{equation}
+f_{\text{blob}, n+1} = f_{\text{blob}, n} \cdot \exp\left( \frac{\text{BlobGasUsed}_n - \text{TargetGas}}{434,496} \right)
+\end{equation}
+When blob demand remains below target capacity (e.g. 3 blobs per block), the blob base fee drops to its minimum threshold of 1~wei ($10^{-9}$~gwei). Under normal non-congested conditions, the total cost of publishing a 128~KiB blob is dominated by the standard execution priority fee rather than the blob gas itself.

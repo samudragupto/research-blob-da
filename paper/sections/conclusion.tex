@@ -1,0 +1,8 @@
+\section{Conclusion and Future Outlook}
+\label{sec:conclusion}
+
+This paper presented an empirical investigation of Ethereum EIP-4844 blobs as a temporary, verifiable publication layer for structured scientific research artifacts. By designing a deterministic pipeline combining RFC~8785 canonicalization, Zstandard compression, modulus-safe \texttt{FE31} packing, three-tiered hybrid commitments, and a dual-horizon content-addressed archival bridge, we demonstrated that research records can achieve up to a $43.8\times$ cost reduction compared to standard EVM calldata while maintaining $100\%$ bitwise reconstruction parity and sub-second verification latency.
+
+Furthermore, our empirical retrieval study on Ethereum Sepolia highlighted the practical fragility of public consensus Beacon endpoints, establishing that reliable scientific reproducibility strictly requires decoupling consensus publication from durable content-addressed archival persistence. 
+
+As the Ethereum protocol progresses toward PeerDAS (EIP-7594) and increased blob throughput limits (EIP-7691), data availability bandwidth will expand significantly. Future work will investigate decentralized peer-to-peer sidecar dissemination, automated smart contract bounty distribution for archival pinning, and zero-knowledge validity proofs for non-deterministic scientific pipelines.

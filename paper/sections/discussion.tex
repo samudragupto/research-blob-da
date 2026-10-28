@@ -1,0 +1,27 @@
+\section{Discussion: Guarantee-Aware Baselines and Open Science}
+\label{sec:discussion}
+
+\input{tables/table_baselines.tex}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/fig_guarantee_cost.pdf}
+\caption{Cost comparison across storage architectures under a guarantee-aware framework (log scale) [Analytical model].}
+\label{fig:guarantee_cost}
+\end{figure}
+
+\subsection{Guarantee-Aware System Comparison}
+Table~\ref{tab:guarantee_baselines} and Figure~\ref{fig:guarantee_cost} synthesize our guarantee-aware baseline comparison across seven decentralized and centralized storage models.
+
+Our findings reveal why single-dimensional USD-per-gigabyte metrics fail to capture protocol trade-offs:
+\begin{itemize}
+    \item \textbf{EIP-4844 Blobs vs. Calldata}: Blobs provide identical Ethereum L1 consensus security at a $27.8\times$ lower publication cost. However, calldata historically persists in full node archives, whereas blobs expire after 18.2 days. Blobs are the superior choice when immediate consensus verification is required during a conference or peer-review window, provided durable external archiving is arranged.
+    \item \textbf{Blobs vs. Centralized S3 / IPFS}: While commodity cloud storage is orders of magnitude cheaper in raw storage fees, it provides zero consensus anchoring. An institution can unilaterally delete an S3 bucket or alter an unversioned file without cryptographic recourse. Blobs provide an immutable, timestamped commitment anchored by the global Ethereum validator set.
+\end{itemize}
+
+\subsection{Implications for Scientific Reproducibility}
+The scientific reproducibility crisis is exacerbated by the transient nature of hosted research artifacts. By coupling temporary Ethereum blob publication with permanent content-addressed storage:
+\begin{enumerate}
+    \item \textbf{Verification During Peer Review}: Reviewers can download and verify the exact experimental trace from consensus blobs during the active review window without relying on third-party repositories.
+    \item \textbf{Long-Term Citation Stability}: Persistent DOIs can point to the Ethereum dataset record and its registered CID in \texttt{ResearchArchiveRegistry.sol}, enabling future researchers to independently verify archival replicas against the immutable L1 anchor.
+\end{enumerate}

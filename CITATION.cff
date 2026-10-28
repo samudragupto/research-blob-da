@@ -19,3 +19,13 @@ keywords:
   - "kzg-commitments"
   - "reproducibility"
   - "open-science"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Nag"
+      given-names: "Arrhat"
+      alias: "samudragupto"
+  title: "Beyond Rollups: Evaluating EIP-4844 Blobs as Temporary Verifiable Data Availability for Research Artifacts"
+  year: 2026
+  url: "https://github.com/samudragupto/research-blob-da"
+

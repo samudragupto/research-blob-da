@@ -1,0 +1,35 @@
+\section{Implementation}
+\label{sec:implementation}
+
+Our open-source implementation comprises an EVM smart contract suite in Solidity and an end-to-end Python research toolkit.
+
+\subsection{Smart Contract Architecture}
+The smart contract suite consists of two core registries and optimized cryptographic libraries:
+\begin{enumerate}
+    \item \textbf{\texttt{DatasetRegistry.sol}}: Implements dataset lifecycle management (\texttt{Open}, \texttt{Finalized}). During Type-3 transactions, \texttt{openDataset} and \texttt{appendBlobs} query \texttt{BLOBHASH} directly, guaranteeing that only genuine transaction blobs are registered. For datasets spanning multiple transactions, \texttt{appendExternalBlobs} allows incremental blob accumulation. The contract implements an optimistic dispute game (\texttt{postClaim}, \texttt{refuteClaim}) where researchers post numeric range claims ($[\text{min}, \text{max}]$) over top-level JSON fields, and challengers can refute false claims by submitting a single Merkle inclusion proof.
+    \item \textbf{\texttt{ResearchArchiveRegistry.sol}}: An immutable dual-horizon extension contract. Once a dataset is finalized in \texttt{DatasetRegistry}, archival nodes call \texttt{registerArchivalRecord} to bind durable storage identifiers (\texttt{archivalCidHash}) and payload digests (\texttt{payloadSha256}).
+    \item \textbf{Cryptographic Libraries}:
+    \begin{itemize}
+        \item \texttt{MerkleLib.sol}: High-efficiency binary Merkle proof and range verification.
+        \item \texttt{JsonFieldLib.sol}: Zero-copy, gas-optimized on-chain parser extracting fixed-point numbers from unquoted and quoted JSON fields.
+        \item \texttt{BlobLib.sol}: Constant definitions and versioned hash validation.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Python Toolkit and Pipeline Modules}
+The Python runtime implements the client-side pipeline:
+\begin{itemize}
+    \item \texttt{canonical.py}: Implements RFC~8785 canonical serialization and length-prefixed stream framing.
+    \item \texttt{encoder.py}: Handles Zstandard compression, field modulus packing (\texttt{FE31} and \texttt{FE254}), blob header formatting, and KZG commitment generation.
+    \item \texttt{decoder.py}: Reassembles multi-blob streams, unpacks field elements, decompresses data, and verifies cryptographic integrity against on-chain roots.
+    \item \texttt{retriever.py}: Implements dual-path retrieval, querying public Beacon nodes via REST API or falling back to local sidecar caches.
+    \item \texttt{archival\_bridge.py}: Coordinates content-addressed storage (CIDv1 derivation, local CAS ingestion, and expiry simulation).
+\end{itemize}
+
+\subsection{Verified Testnet Deployment}
+The smart contracts were compiled with Solidity v0.8.24 (Cancun EVM target, 200 optimizer runs) and deployed to the Ethereum Sepolia testnet:
+\begin{itemize}
+    \item \textbf{DatasetRegistry Address}: \texttt{0x238dE56E52A3F6C6708952052e6a20E5102b4d5b}
+    \item \textbf{Etherscan Verification}: Verified contract code on Sepolia Etherscan\footnote{\url{https://sepolia.etherscan.io/address/0x238dE56E52A3F6C6708952052e6a20E5102b4d5b\#code}}.
+    \item \textbf{Live Blob Transaction}: \texttt{0x9631459f3ee3c26a2113ec9e5d9aee06dc1107435f387596c95a5fd912c7f7ea} (Block 12006195, Dataset ID \texttt{0x4f7b...d29b}, carrying 1 blob of real OpenAlex scholarly metadata).
+\end{itemize}

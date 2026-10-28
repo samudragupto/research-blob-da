@@ -1,0 +1,37 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "name": "research-blob-da",
+  "version": "0.2.0-journal",
+  "description": "Empirical evaluation and open-source protocol prototype evaluating Ethereum EIP-4844 blobs as temporary, verifiable data availability for scientific research artifacts with a dual-horizon content-addressed archival bridge.",
+  "applicationCategory": "Computer Science, Distributed Systems, Applied Cryptography, Blockchain, Data Availability",
+  "license": "https://spdx.org/licenses/MIT",
+  "codeRepository": "https://github.com/samudragupto/research-blob-da",
+  "dateCreated": "2026-10-27",
+  "dateModified": "2026-10-28",
+  "programmingLanguage": [
+    "Solidity",
+    "Python"
+  ],
+  "runtimePlatform": [
+    "EVM (Cancun)",
+    "Python 3.13"
+  ],
+  "author": [
+    {
+      "@type": "Person",
+      "givenName": "Arrhat",
+      "familyName": "Nag",
+      "additionalName": "samudragupto",
+      "url": "https://github.com/samudragupto"
+    }
+  ],
+  "citation": [
+    {
+      "@type": "ScholarlyArticle",
+      "name": "Beyond Rollups: Evaluating EIP-4844 Blobs as Temporary Verifiable Data Availability for Research Artifacts",
+      "author": "Arrhat Nag",
+      "datePublished": "2026"
+    }
+  ]
+}

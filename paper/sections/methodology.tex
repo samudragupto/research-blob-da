@@ -1,0 +1,32 @@
+\section{Experimental Methodology}
+\label{sec:methodology}
+
+\subsection{Experimental Testbed and Environment Capture}
+To ensure reproducibility, all local micro-benchmarks and simulations were executed under a strictly captured runtime environment recorded in \texttt{environment.json}:
+\begin{itemize}
+    \item \textbf{Hardware}: AMD x86\_64 16-logical core processor, 16~GiB physical RAM, NVMe solid-state storage.
+    \item \textbf{Software}: Python 3.13.11, Foundry / Forge v1.5.1-stable, Solidity v0.8.24, zstandard v0.25.0.
+    \item \textbf{Protocol Parameters}: Cancun baseline (3 target blobs, 6 max blobs per block, 131,072 blob gas per blob).
+\end{itemize}
+
+\subsection{Evaluation Dataset Corpus}
+Our evaluation encompasses five distinct dataset classes across real and synthetic domains:
+\begin{enumerate}
+    \item \textbf{Real Scholarly Metadata (\texttt{real\_scholarly\_openalex})}: 500 academic work records harvested from the OpenAlex API (264,057 raw bytes, 212,517 canonical bytes, CC0 license).
+    \item \textbf{Real Environmental Telemetry (\texttt{real\_climate\_sensor})}: 5,000 meteorological and PM2.5 observation records from NOAA GSOD stations (794,842 raw bytes, 781,950 canonical bytes, Public Domain).
+    \item \textbf{Real ML Training Traces (\texttt{real\_ml\_training\_trace})}: 5,000 step-level training loss, learning rate, and gradient norm records from a distributed Transformer model run (541,339 canonical bytes, Apache 2.0 license).
+    \item \textbf{Deterministic Synthetic Scaling Corpus}: Synthetic scientific experimental records generated from a fixed PRNG seed (\texttt{42}) scaled to exact sizes: 100~KiB, 1~MiB, 5~MiB, 20~MiB, and 50~MiB.
+    \item \textbf{Incompressible Negative Control}: 1~MiB of high-entropy pseudo-random bytes designed to evaluate boundary performance when compression achieves no reduction.
+\end{enumerate}
+
+\subsection{Execution Protocol and Statistical Plan}
+Each local timing experiment executes 2 unrecorded warm-up iterations followed by 10 recorded iterations ($N=10$). We report arithmetic mean, sample standard deviation, sample median, and non-parametric $95\%$ percentile bootstrap confidence intervals computed over $B = 1,000$ resamples (seed \texttt{42}). For memory profiling, peak resident set size (RSS) is monitored.
+
+\subsection{Baseline Economic Assumptions}
+Economic comparisons adopt conservative baseline market parameters:
+\begin{itemize}
+    \item Execution Base Fee: $15$~gwei.
+    \item Blob Base Fee: $2$~gwei.
+    \item ETH/USD Price: \$3,000~USD per ETH.
+    \item Calldata Gas Cost: Standard $16$~gas per non-zero byte (Pre-Pectra) and $40$~gas per non-zero byte token floor under EIP-7623.
+\end{itemize}

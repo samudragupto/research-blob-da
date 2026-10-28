@@ -1,0 +1,30 @@
+\section{Introduction}
+\label{sec:introduction}
+
+The reproducibility of empirical scientific research depends directly upon the integrity and verifiable availability of experimental datasets, hyperparameter configurations, and model training traces~\cite{wilkinson2016fair}. In computational disciplines such as machine learning and environmental informatics, research artifacts frequently consist of multi-megabyte structured logs. When these artifacts are hosted on traditional institutional web servers or cloud storage buckets, they remain vulnerable to link rot, silent bit rot, domain lapses, and unilateral tampering. 
+
+Decentralized networks have emerged as a potential solution, but existing blockchain primitives present an acute economic and architectural dilemma:
+\begin{enumerate}
+    \item \textbf{EVM State Storage (\texttt{SSTORE})}: Storing raw dataset records directly within persistent smart contract storage slots costs upwards of \$2,900~USD per megabyte under typical gas regimes, rendering large-scale scientific publication economically impossible.
+    \item \textbf{Standard Transaction Calldata}: Calldata commits historical byte streams into full node block history, but incurs substantial execution gas costs (\$1.44~USD/MiB), which will further increase under proposed calldata pricing floors such as EIP-7623~\cite{piet2024eip7623}.
+    \item \textbf{Off-Chain P2P Storage (IPFS, Filecoin, Arweave)}: While content-addressed networks provide cheap storage, raw IPFS hashes lack native consensus availability verification on Ethereum L1, and storage deals require separate tokenomics or ongoing subscription pinning~\cite{benet2014ipfs,protocol2017filecoin}.
+\end{enumerate}
+
+In March 2024, the Ethereum Deneb hard fork activated EIP-4844 (Proto-Danksharding)~\cite{buterin2022eip4844}. EIP-4844 introduced ``blobs''---128~KiB binary data sidecars that are verified by consensus validators via Kate-Zaverucha-Goldberg (KZG) polynomial commitments~\cite{kate2010polynomial} and made available for a temporary window of 4,096 epochs ($\approx 18.2$~days) before automatic pruning. While EIP-4844 was engineered specifically to reduce Layer-2 (L2) rollup settlement fees, its core properties---consensus-enforced data availability, low gas fees, and cryptographic commitment anchoring---suggest an unexplored application: \textit{temporary, verifiable publication for structured scientific research artifacts}.
+
+\subsection{Central Research Question and Contributions}
+This paper addresses the central question:
+\begin{quote}
+\textit{Can Ethereum blobs serve as a temporary, verifiable publication layer for reproducible research artifacts, and what additional infrastructure is required to convert temporary data availability into durable scientific preservation?}
+\end{quote}
+
+We make the following contributions:
+\begin{enumerate}
+    \item \textbf{Non-Rollup Application Model}: We formulate and implement an end-to-end architecture applying EIP-4844 blobs to scientific data publication, record streaming, and peer review.
+    \item \textbf{Deterministic Encoding Pipeline}: We design a deterministic pipeline incorporating RFC~8785 JSON Canonicalization Scheme (JCS)~\cite{rfc8785}, Zstandard compression (RFC~8878)~\cite{rfc8878}, and modulus-safe field element modulus packing (\texttt{FE31}).
+    \item \textbf{Three-Tiered Hybrid Commitments}: We implement an EVM contract suite (\texttt{DatasetRegistry.sol}) that binds blob versioned hashes (\texttt{BLOBHASH}), whole-dataset canonical content hashes, and position-binding record-level Merkle proofs for sub-record verification and optimistic dispute games.
+    \item \textbf{Dual-Horizon Archival Bridge}: We design, deploy, and verify an archival extension contract (\texttt{ResearchArchiveRegistry.sol}) and client bridge (\texttt{archival\_bridge.py}) that binds transient consensus blob commitments to durable content-addressed storage (IPFS/CAS), ensuring bitwise verification post consensus pruning.
+    \item \textbf{Empirical Infrastructure Realities}: We conduct an empirical retrieval study on Ethereum Sepolia, documenting practical limitations, rate-limiting, and failure modes across public consensus Beacon API endpoints.
+    \item \textbf{Guarantee-Aware Comparative Framework}: We formalize a multi-dimensional comparison evaluating availability duration, consensus verification, permanence, retrieval guarantees, and economics across seven decentralized and cloud storage baselines.
+    \item \textbf{Reproducible Open-Source Artifact}: We release verified Sepolia contracts, automated reproduction harnesses, raw trial-level benchmarks, and a formal security threat model.
+\end{enumerate}

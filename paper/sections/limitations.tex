@@ -1,0 +1,16 @@
+\section{Limitations and Threats to Validity}
+\label{sec:limitations}
+
+We explicitly delineate the boundaries, operational limitations, and validity threats of this work:
+
+\subsection{Consensus Pruning Boundaries}
+The primary limitation of EIP-4844 blobs is their non-permanent retention. While on-chain versioned hashes persist indefinitely in block headers, sidecars are automatically purged by consensus nodes after $\approx 18.2$ days. Blobs must never be misconstrued as a standalone permanent archive; data persistence strictly requires an external bridge.
+
+\subsection{Public Consensus Retrieval Instability}
+Our empirical study on Ethereum Sepolia demonstrated that unauthenticated public Beacon API endpoints exhibit high failure rates ($100\%$ failure across tested public endpoints). While production rollup operators utilize dedicated consensus clients with direct disk access, independent academic researchers relying on public gateways face significant retrieval friction.
+
+\subsection{Testnet vs. Mainnet Fee Volatility}
+While execution and blob gas units are identical across Sepolia and Ethereum Mainnet, mainnet fee dynamics are subject to real-world congestion. Under extreme market conditions where blob demand exceeds the 3-blob target, blob fees rise exponentially. However, as demonstrated by our economic model, blobs maintain a cost advantage over calldata up to a break-even threshold of 207.9~gwei.
+
+\subsection{Scope of Reproducibility}
+`research-blob-da` addresses artifact integrity, publication economics, and deterministic bitwise reconstruction. It does not eliminate external sources of scientific non-reproducibility, such as non-deterministic GPU floating-point operations, hardware microarchitecture variations, or flawed statistical methodology.

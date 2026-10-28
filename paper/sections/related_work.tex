@@ -1,0 +1,17 @@
+\section{Related Work}
+\label{sec:related_work}
+
+\subsection{Modular Data Availability Layers}
+Modular blockchain architectures decouple transaction execution from consensus and data availability. Celestia~\cite{al2019celestia} implements a sovereign data availability blockchain utilizing two-dimensional Reed-Solomon erasure coding and Namespaced Merkle Trees (NMTs) to enable light clients to perform Data Availability Sampling (DAS). Avail~\cite{wood2014ethereum} similarly implements a standalone DA substrate using Kate polynomial commitments and erasure coding. EigenDA~\cite{roughgarden2021eip1559} provides a restaked data availability service on Ethereum, dispersing data slices across an off-chain node quorum. While these systems provide scalable bandwidth, they operate as separate sovereign networks or restaked middleware, requiring external bridges and distinct trust assumptions. In contrast, our approach utilizes native Ethereum L1 blobs, achieving direct consensus commitment without secondary network tokenomics.
+
+\subsection{Decentralized Archival Storage}
+Decentralized storage networks have long sought to preserve digital artifacts:
+\begin{itemize}
+    \item \textbf{IPFS}~\cite{benet2014ipfs}: Organizes data into directed acyclic graphs (IPLD) identified by cryptographic content identifiers (CIDs). However, IPFS does not provide consensus-backed persistence guarantees; unpinned data is rapidly discarded by gateway caches.
+    \item \textbf{Filecoin}~\cite{protocol2017filecoin}: Introduces an economic market for contractual storage deals verified by Proof-of-Replication (PoRep) and Proof-of-Spacetime (PoSt). While highly durable, Filecoin deals require sector sealing latencies, separate FIL currency management, and periodic deal renewals.
+    \item \textbf{Arweave}~\cite{williams2019arweave}: Uses a Proof-of-Access consensus mechanism funded by an upfront endowment pool intended to sustain multi-decade data persistence.
+\end{itemize}
+In our architecture, these networks are not viewed as competitors to blobs, but rather as complementary backends within a dual-horizon framework: blobs serve as the immediate, consensus-verified publication layer, while IPFS and Arweave provide durable post-expiry preservation.
+
+\subsection{Scientific Artifact Provenance and DeSci}
+The Decentralized Science (DeSci) movement seeks to make scientific workflows transparent, immutable, and verifiable~\cite{wilkinson2016fair,priem2022openalex}. Existing DeSci implementations typically store raw artifact files on IPFS and record the resulting CID string in an on-chain smart contract registry. However, this pattern provides no guarantee that the data behind the CID was actually available to network observers at transaction time. By publishing initial research artifacts directly through EIP-4844 blobs, our framework guarantees consensus-level availability during the peer-review and replication window, anchoring data integrity to Ethereum's security threshold.
