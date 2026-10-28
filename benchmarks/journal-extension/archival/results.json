@@ -21,6 +21,7 @@
     "timings_ms": {
       "canonicalization": 4.004,
       "blob_encoding": 13.278,
+      "archival_upload": 0.837,
       "local_content_addressed_store_upload_ms": 0.837
     }
   },
@@ -36,6 +37,7 @@
     "sha256_verified": true,
     "content_hash_verified": true,
     "records_root_verified": true,
+    "retrieval_latency_ms": 0.282,
     "local_content_addressed_store_retrieval_ms": 0.282,
     "verification_latency_ms": 7.633
   },

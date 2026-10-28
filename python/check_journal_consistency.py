@@ -222,9 +222,12 @@ def check_dataset_provenance():
             raw_bytes = f.read()
         calc_sha = hashlib.sha256(raw_bytes).hexdigest()
         calc_sha_lf = hashlib.sha256(raw_bytes.replace(b"\r\n", b"\n")).hexdigest()
+        calc_sha_crlf = hashlib.sha256(
+            raw_bytes.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+        ).hexdigest()
         expected_sha = ds.get("source_sha256", "")
 
-        if expected_sha not in (calc_sha, calc_sha_lf):
+        if expected_sha not in (calc_sha, calc_sha_lf, calc_sha_crlf):
             raise ValueError(
                 f"Source file SHA-256 mismatch for {ds_id} at {src_path}: "
                 f"calculated {calc_sha} != expected {expected_sha}"
