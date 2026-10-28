@@ -20,8 +20,10 @@ Our findings reveal why single-dimensional USD-per-gigabyte metrics fail to capt
 \end{itemize}
 
 \subsection{Implications for Scientific Reproducibility}
-The scientific reproducibility crisis is exacerbated by the transient nature of hosted research artifacts. By coupling temporary Ethereum blob publication with permanent content-addressed storage:
+The reproducibility of computational science is challenged by the transient nature of hosted research artifacts. By coupling temporary Ethereum blob publication with verified content-addressed storage:
 \begin{enumerate}
     \item \textbf{Verification During Peer Review}: Reviewers can download and verify the exact experimental trace from consensus blobs during the active review window without relying on third-party repositories.
     \item \textbf{Long-Term Citation Stability}: Persistent DOIs can point to the Ethereum dataset record and its registered CID in \texttt{ResearchArchiveRegistry.sol}, enabling future researchers to independently verify archival replicas against the immutable L1 anchor.
 \end{enumerate}
+
+We implemented and evaluated a local content-addressed archival prototype that mirrors blob payloads into a deterministic content-addressed store and verifies them against Ethereum-anchored commitments after simulated blob expiry. Public decentralized storage backends such as IPFS pinning services, Filecoin deals, and Arweave transactions were not evaluated in this study. Connecting the bridge to a public pinning or storage network remains future work, and local-store latencies are not representative of network-storage latencies.

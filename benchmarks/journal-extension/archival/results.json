@@ -1,6 +1,10 @@
 {
   "timestamp_utc": "2026-10-28T00:00:00Z",
   "dataset_id": "0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b",
+  "archival_evaluation_environment": {
+    "backend_type": "local_content_addressed_store",
+    "description": "Local content-addressed store prototype implementing RFC 8785 and CIDv1 derivation. Evaluated strictly locally; public decentralized storage backends (IPFS pinning services, Filecoin deals, Arweave transactions) were not evaluated in this study."
+  },
   "publication": {
     "dataset_id": "0x4f7b50bd684170f2c427d8975ee6478fadbc46918b764f1e8a4915374bf9d29b",
     "record_count": 500,
@@ -17,7 +21,7 @@
     "timings_ms": {
       "canonicalization": 4.004,
       "blob_encoding": 13.278,
-      "archival_upload": 0.837
+      "local_content_addressed_store_upload_ms": 0.837
     }
   },
   "expiry_simulation": {
@@ -32,12 +36,12 @@
     "sha256_verified": true,
     "content_hash_verified": true,
     "records_root_verified": true,
-    "retrieval_latency_ms": 0.282,
+    "local_content_addressed_store_retrieval_ms": 0.282,
     "verification_latency_ms": 7.633
   },
   "trust_model": {
     "consensus_layer_role": "Temporary verifiable publication window & cryptographic anchoring",
-    "archival_bridge_role": "Durable content-addressed persistence past 4096 epochs",
+    "archival_bridge_role": "Durable content-addressed persistence past 4096 epochs via external replicas",
     "integrity_guarantee": "Cryptographic binding via SHA-256, Content Hash, and Merkle root"
   }
 }

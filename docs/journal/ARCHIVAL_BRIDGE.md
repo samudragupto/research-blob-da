@@ -4,15 +4,17 @@ This document details the architectural design, implementation, and empirical ve
 
 ---
 
-## 1. Dual-Horizon Architecture
+## 1. Dual-Horizon Architecture and Evaluation Scope
+
+We implemented and evaluated a local content-addressed archival prototype that mirrors blob payloads into a deterministic content-addressed store and verifies them against Ethereum-anchored commitments after simulated blob expiry. Public decentralized storage backends such as IPFS pinning services, Filecoin deals, and Arweave transactions were not evaluated in this study.
 
 Scientific artifacts require two fundamentally different temporal availability guarantees:
 1. **Horizon 1 (Temporary Publication & Consensus Commitment)**:
    - High-throughput, low-cost publication layer powered by Ethereum EIP-4844 blobs.
-   - Retained by consensus clients for at least 4,096 epochs ($\approx 18.2\text{ days}$).
+   - Retained by consensus clients for at least 4,096 epochs (~18.2 days).
    - Guarantees that at block inclusion time, the data was made available to all validators and observers, anchored by cryptographic KZG commitments and on-chain `BLOBHASH` opcodes.
 2. **Horizon 2 (Durable Scientific Preservation)**:
-   - Indefinite retention layer powered by content-addressed storage (IPFS, Filecoin, Arweave, institutional CAS).
+   - Indefinite retention layer conceptually targeted at content-addressed storage (IPFS, Filecoin, Arweave, institutional CAS).
    - Retains exact canonical research bytes beyond the consensus pruning window.
    - Cryptographically bound to the Horizon 1 Ethereum anchor through content identifiers (CIDv1) and canonical SHA-256 / Keccak-256 roots.
 
@@ -64,16 +66,16 @@ struct ArchivalRecord {
 
 ## 4. Empirical Performance Metrics
 
-Data source: `benchmarks/journal-extension/archival/results.json`.
+Data source: `benchmarks/journal-extension/archival/results.json`. Note: These figures reflect `local_content_addressed_store` operations measured on local hardware and evaluate the cryptographic roundtrip logic. They do not measure network roundtrip, gateway latency, or consensus deal-making times of public distributed storage networks (such as IPFS, Filecoin, or Arweave).
 
-| Pipeline Stage | Operation | Latency (ms) | Verified Invariant |
-|---|---|---|---|
-| Step 1 | Canonicalization (RFC 8785) | 4.004 ms | Deterministic serialization |
-| Step 2 | EIP-4844 Blob Encoding | 13.278 ms | Header formatting, FE31 packing |
-| Step 3 | Archival Ingestion (CAS Put) | 0.837 ms | CIDv1 multihash derivation |
-| Step 4 | Consensus Blob Purge | Instantaneous | 1 blob evicted from cache |
-| Step 5 | Archival Retrieval (CAS Get) | 0.282 ms | Exact byte stream retrieved |
-| Step 6 | Post-Expiry Cryptographic Verification | 7.633 ms | SHA-256, Content Hash, Merkle root |
+| Pipeline Stage | Operation | Latency (ms) | Verified Invariant | Evidence Type |
+|---|---|---|---|---|
+| Step 1 | Canonicalization (RFC 8785) | 4.004 ms | Deterministic serialization | Measured locally |
+| Step 2 | EIP-4844 Blob Encoding | 13.278 ms | Header formatting, FE31 packing | Measured locally |
+| Step 3 | Archival Ingestion (CAS Put) | 0.837 ms | CIDv1 multihash derivation | Local prototype measurement |
+| Step 4 | Consensus Blob Purge | Instantaneous | 1 blob evicted from cache | Simulated |
+| Step 5 | Archival Retrieval (CAS Get) | 0.282 ms | Exact byte stream retrieved | Local prototype measurement |
+| Step 6 | Post-Expiry Cryptographic Verification | 7.633 ms | SHA-256, Content Hash, Merkle root | Measured locally |
 
 ---
 

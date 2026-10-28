@@ -45,7 +45,7 @@ To support selective verification, whole-dataset integrity, and on-chain dispute
 \subsection{Dual-Horizon Archival Bridge}
 To address the 4,096-epoch consensus pruning horizon, the architecture decouples temporary publication from durable preservation:
 \begin{itemize}
-    \item At publication time, the publisher uploads the exact canonical payload to an external content-addressed store (e.g., IPFS or institutional CAS) to obtain a CIDv1 multihash.
+    \item At publication time, the publisher mirrors the exact canonical payload into a content-addressed store (such as our local content-addressed prototype or institutional CAS) to obtain a deterministic CIDv1 multihash.
     \item The publisher registers the 32-byte CID hash in \texttt{ResearchArchiveRegistry.sol}, linking it directly to the finalized Ethereum dataset record.
     \item Observers verify the dataset from blobs during the 18.2-day window; after blob pruning, observers retrieve the payload from the content-addressed store and verify it against the Ethereum on-chain $H_c$ and $R_m$ commitments.
 \end{itemize}
