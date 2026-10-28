@@ -1,0 +1,7 @@
+endpoint_id,source_type,sanitized_host,attempt_count,success_count,failure_count,success_rate_pct,median_latency_ms,observed_error_categories
+chainsafe_lodestar_public,beacon_api,lodestar-sepolia.chainsafe.io,2,0,2,0.0,1240.5,server_exception
+publicnode_beacon_api,beacon_api,ethereum-sepolia-beacon-api.publicnode.com,1,0,1,0.0,420.1,pre_deneb_routing_error
+drpc_beacon_sepolia,beacon_api,eth-beacon-chain-sepolia.drpc.org,1,0,1,0.0,285.4,free_tier_restricted
+blobscan_sepolia_indexer,archival_provider,api.sepolia.blobscan.com,2,0,2,0.0,612.8,indexer_lag
+dual_horizon_archival_gateway,archival_provider,archival-bridge.local,1,1,0,100.0,142.3,none
+local_mock_retriever,local_cache,localhost,2,2,0,100.0,2.3,none
