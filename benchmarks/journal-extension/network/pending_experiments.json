@@ -1,0 +1,315 @@
+{
+  "timestamp_utc": "2026-10-28T12:39:53.521292+00:00",
+  "safety_configuration": {
+    "approved": false,
+    "max_transactions": 0,
+    "max_total_eth": 0.0,
+    "max_fee_per_tx_eth": 0.0
+  },
+  "chain_id": 11155111,
+  "planned_submissions_count": 30,
+  "execution_status": "PENDING_AUTHORIZATION",
+  "notes": "Network experiments on Sepolia are strictly gated by budget controls. In accordance with research integrity rules, no network transactions are simulated or fabricated when live execution is unapproved or unfunded.",
+  "planned_matrix": [
+    {
+      "plan_id": "SEP-SUBMISSION-001",
+      "dataset_id": "real_scholarly_openalex",
+      "dataset_name": "OpenAlex Scholarly Works",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 1,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-002",
+      "dataset_id": "real_scholarly_openalex",
+      "dataset_name": "OpenAlex Scholarly Works",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 2,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-003",
+      "dataset_id": "real_scholarly_openalex",
+      "dataset_name": "OpenAlex Scholarly Works",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 3,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-004",
+      "dataset_id": "real_scholarly_openalex",
+      "dataset_name": "OpenAlex Scholarly Works",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 4,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-005",
+      "dataset_id": "real_scholarly_openalex",
+      "dataset_name": "OpenAlex Scholarly Works",
+      "size_class": "medium_2blob",
+      "blob_count": 2,
+      "repetition_index": 1,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-006",
+      "dataset_id": "real_scholarly_openalex",
+      "dataset_name": "OpenAlex Scholarly Works",
+      "size_class": "medium_2blob",
+      "blob_count": 2,
+      "repetition_index": 2,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-007",
+      "dataset_id": "real_scholarly_openalex",
+      "dataset_name": "OpenAlex Scholarly Works",
+      "size_class": "medium_2blob",
+      "blob_count": 2,
+      "repetition_index": 3,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-008",
+      "dataset_id": "real_scholarly_openalex",
+      "dataset_name": "OpenAlex Scholarly Works",
+      "size_class": "large_6blob",
+      "blob_count": 6,
+      "repetition_index": 1,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-009",
+      "dataset_id": "real_scholarly_openalex",
+      "dataset_name": "OpenAlex Scholarly Works",
+      "size_class": "large_6blob",
+      "blob_count": 6,
+      "repetition_index": 2,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-010",
+      "dataset_id": "real_scholarly_openalex",
+      "dataset_name": "OpenAlex Scholarly Works",
+      "size_class": "large_6blob",
+      "blob_count": 6,
+      "repetition_index": 3,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-011",
+      "dataset_id": "real_climate_sensor",
+      "dataset_name": "Atmospheric Sensor Observations",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 1,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-012",
+      "dataset_id": "real_climate_sensor",
+      "dataset_name": "Atmospheric Sensor Observations",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 2,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-013",
+      "dataset_id": "real_climate_sensor",
+      "dataset_name": "Atmospheric Sensor Observations",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 3,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-014",
+      "dataset_id": "real_climate_sensor",
+      "dataset_name": "Atmospheric Sensor Observations",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 4,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-015",
+      "dataset_id": "real_climate_sensor",
+      "dataset_name": "Atmospheric Sensor Observations",
+      "size_class": "medium_2blob",
+      "blob_count": 2,
+      "repetition_index": 1,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-016",
+      "dataset_id": "real_climate_sensor",
+      "dataset_name": "Atmospheric Sensor Observations",
+      "size_class": "medium_2blob",
+      "blob_count": 2,
+      "repetition_index": 2,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-017",
+      "dataset_id": "real_climate_sensor",
+      "dataset_name": "Atmospheric Sensor Observations",
+      "size_class": "medium_2blob",
+      "blob_count": 2,
+      "repetition_index": 3,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-018",
+      "dataset_id": "real_climate_sensor",
+      "dataset_name": "Atmospheric Sensor Observations",
+      "size_class": "large_6blob",
+      "blob_count": 6,
+      "repetition_index": 1,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-019",
+      "dataset_id": "real_climate_sensor",
+      "dataset_name": "Atmospheric Sensor Observations",
+      "size_class": "large_6blob",
+      "blob_count": 6,
+      "repetition_index": 2,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-020",
+      "dataset_id": "real_climate_sensor",
+      "dataset_name": "Atmospheric Sensor Observations",
+      "size_class": "large_6blob",
+      "blob_count": 6,
+      "repetition_index": 3,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-021",
+      "dataset_id": "real_ml_training_trace",
+      "dataset_name": "Transformer ML Training Trace",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 1,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-022",
+      "dataset_id": "real_ml_training_trace",
+      "dataset_name": "Transformer ML Training Trace",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 2,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-023",
+      "dataset_id": "real_ml_training_trace",
+      "dataset_name": "Transformer ML Training Trace",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 3,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-024",
+      "dataset_id": "real_ml_training_trace",
+      "dataset_name": "Transformer ML Training Trace",
+      "size_class": "small_1blob",
+      "blob_count": 1,
+      "repetition_index": 4,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-025",
+      "dataset_id": "real_ml_training_trace",
+      "dataset_name": "Transformer ML Training Trace",
+      "size_class": "medium_2blob",
+      "blob_count": 2,
+      "repetition_index": 1,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-026",
+      "dataset_id": "real_ml_training_trace",
+      "dataset_name": "Transformer ML Training Trace",
+      "size_class": "medium_2blob",
+      "blob_count": 2,
+      "repetition_index": 2,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-027",
+      "dataset_id": "real_ml_training_trace",
+      "dataset_name": "Transformer ML Training Trace",
+      "size_class": "medium_2blob",
+      "blob_count": 2,
+      "repetition_index": 3,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-028",
+      "dataset_id": "real_ml_training_trace",
+      "dataset_name": "Transformer ML Training Trace",
+      "size_class": "large_6blob",
+      "blob_count": 6,
+      "repetition_index": 1,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-029",
+      "dataset_id": "real_ml_training_trace",
+      "dataset_name": "Transformer ML Training Trace",
+      "size_class": "large_6blob",
+      "blob_count": 6,
+      "repetition_index": 2,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    },
+    {
+      "plan_id": "SEP-SUBMISSION-030",
+      "dataset_id": "real_ml_training_trace",
+      "dataset_name": "Transformer ML Training Trace",
+      "size_class": "large_6blob",
+      "blob_count": 6,
+      "repetition_index": 3,
+      "target_chain_id": 11155111,
+      "status": "PENDING_AUTHORIZATION"
+    }
+  ]
+}
