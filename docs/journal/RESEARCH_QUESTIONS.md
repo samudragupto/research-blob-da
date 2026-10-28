@@ -94,7 +94,7 @@ How reliably can blob sidecars be retrieved from public consensus endpoints acro
 - Error taxonomy: HTTP 404 (pruned/absent), HTTP 429 (rate-limited), HTTP 504 (timeout), connection reset, corrupt sidecar.
 
 ### Evaluation Method
-- Multi-provider retrieval harness querying configured public Beacon API endpoints, archival providers, and local caches.
+- Multi-provider retrieval harness querying configured public Beacon API endpoints, simulated archival cache, and local caches.
 - Nonce/timestamp-scheduled retrieval logging into machine-readable JSONL records.
 
 ---
@@ -105,7 +105,7 @@ How reliably can blob sidecars be retrieved from public consensus endpoints acro
 Can an external archival bridge preserve exact research bytes beyond the transient blob availability window while retaining cryptographic verifiability against Ethereum-anchored commitments?
 
 ### Hypotheses
-- **$H_{5,0}$ (Null)**: An archival bridge cannot bind external durable storage providers (e.g., IPFS/Filecoin/local content-addressed archives) to Ethereum blob commitments without introducing trusted third parties or breaking cryptographic provenance.
+- **$H_{5,0}$ (Null)**: An archival bridge cannot bind external storage backends (evaluated via a local content-addressed archive prototype) to Ethereum blob commitments without introducing trusted third parties or breaking cryptographic provenance.
 - **$H_{5,1}$ (Alternative)**: A content-addressed archival bridge linking canonical payload SHA-256 and Merkle roots to durable CIDs enables bit-for-bit dataset reconstruction and EVM-verifiable integrity proofs after blobs have been pruned from consensus nodes.
 
 ### Metrics
@@ -126,11 +126,11 @@ How effectively does the multi-tiered commitment system detect modified, omitted
 
 ### Hypotheses
 - **$H_{6,0}$ (Null)**: Adversarial mutations of research records (e.g., bit flips, record deletion, reordering, fraudulent statistical claims) can evade detection by the on-chain registry or off-chain reconstruction pipeline.
-- **$H_{6,1}$ (Alternative)**: The combination of blob versioned hashes, canonical payload SHA-256, record-level Merkle proofs, and optimistic dispute games detects $100\%$ of record corruptions, omissions, reorderings, and false property claims.
+- **$H_{6,1}$ (Alternative)**: The combination of blob versioned hashes, canonical payload SHA-256, record-level Merkle proofs, and optimistic dispute games detects all 15/15 evaluated adversarial record corruptions, omissions, reorderings, and false property claims.
 
 ### Metrics
-- Adversarial detection rate across defined attack scenarios ($100\%$).
-- False positive rate ($0\%$).
+- Adversarial detection rate across defined attack scenarios (15/15 implemented scenarios detected).
+- False positive rate ($0/15$ in evaluated baseline).
 - Gas cost and proof size for on-chain fraud refutations.
 
 ### Evaluation Method

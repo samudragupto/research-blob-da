@@ -6,7 +6,7 @@ We evaluate the resilience of `research-blob-da` against adversarial corruption,
 \input{tables/table_security.tex}
 
 \subsection{Adversarial Scenario Analysis}
-Table~\ref{tab:security_matrix} details our evaluation across 15 distinct threat scenarios (SEC-01 through SEC-15). The system achieved a \textbf{$100.0\%$ detection rate} across all simulated attack vectors:
+Table~\ref{tab:security_matrix} details our evaluation across 15 distinct threat scenarios (SEC-01 through SEC-15). All 15 implemented adversarial test scenarios were detected by the corresponding verification checks (15/15 implemented scenarios detected). These results demonstrate that the specified checks function as designed for the tested scenarios; they do not constitute a formal security proof or complete coverage of all possible attacks:
 
 \begin{enumerate}
     \item \textbf{Bit Flips and Payload Mutation (SEC-01, SEC-02)}: Any bit flip within a blob sidecar triggers a Zstandard frame integrity failure or KZG point verification rejection. Modifying canonical bytes post-decompression causes an immediate mismatch against the on-chain \texttt{contentHash}.

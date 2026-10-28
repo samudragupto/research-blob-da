@@ -8,16 +8,16 @@ Across all evaluated datasets and payload sizes, the end-to-end pipeline determi
 \begin{equation}
 \text{SHA-256}(S_{\text{reconstructed}}) \equiv \text{SHA-256}(S_{\text{canonical}})
 \end{equation}
-On Ethereum Sepolia, transaction \texttt{0x9631...7ea} successfully committed versioned hash \texttt{0x010e...af11} matching the locally generated sidecar. The smart contract suite validated all state invariants, passing 36 Foundry test suites (including 1,024-run fuzzing and 16,384-call stateful invariant campaigns) and 49 Pytest test cases without failure.
+Roundtrip reconstruction succeeded for all evaluated trials with zero byte discrepancies. This is a correctness result, not a statistical significance test. On Ethereum Sepolia, transaction \texttt{0x9631...7ea} successfully committed versioned hash \texttt{0x010e...af11} matching the locally generated sidecar. The smart contract suite validated all state invariants, passing 36 Foundry test suites (including 1,024-run fuzzing and 16,384-call stateful invariant campaigns) and 49 Pytest test cases without failure.
 
 \subsection{RQ2: Economics and Break-Even Blob Fees}
 \input{tables/table_local_matrix.tex}
 
-Table~\ref{tab:local_matrix} reports the local evaluation matrix. For uncompressed 1.0~MiB payloads, blobs require 9 blobs costing \$27.24~USD versus \$755.92~USD in calldata---a \textbf{$27.8\times$ theoretical cost reduction}. When compression is applied to real structured data, the economic advantage expands:
+Table~\ref{tab:local_matrix} reports the local evaluation matrix. For uncompressed 1.0~MiB payloads, blobs require 9 blobs costing \$27.24~USD versus \$755.92~USD in calldata---a \textbf{$27.8\times$ theoretical cost reduction}. When compression is applied to structured scientific and synthetic data, the economic advantage expands:
 \begin{itemize}
     \item \textbf{OpenAlex Scholarly Metadata} (272.9~KiB canonical): Achieves a $5.19\times$ compression ratio down to 52.6~KiB, fitting entirely within a single blob. Cost is \$1.73~USD in blobs versus \$38.85~USD in calldata (\textbf{$22.4\times$ cost reduction}).
-    \item \textbf{Climate Observations} (1,051.9~KiB canonical): Compresses $10.11\times$ to 104.1~KiB, fitting into 1 blob costing \$1.73~USD versus \$75.86~USD in calldata (\textbf{$43.8\times$ cost reduction}).
-    \item \textbf{ML Training Trace} (531.3~KiB canonical): Compresses $5.78\times$ to 92.0~KiB, fitting into 1 blob costing \$1.73~USD versus \$67.16~USD in calldata (\textbf{$38.8\times$ cost reduction}).
+    \item \textbf{Synthetic NOAA Climate Observations} (1,051.9~KiB canonical): Compresses $10.11\times$ to 104.1~KiB, fitting into 1 blob costing \$1.73~USD versus \$75.86~USD in calldata (\textbf{$43.8\times$ cost reduction}).
+    \item \textbf{Synthetic PyTorch ML Training Trace} (531.3~KiB canonical): Compresses $5.78\times$ to 92.0~KiB, fitting into 1 blob costing \$1.73~USD versus \$67.16~USD in calldata (\textbf{$38.8\times$ cost reduction}).
 \end{itemize}
 
 The analytical break-even blob base fee $B^*$ at a 15~gwei execution base fee is $207.9$~gwei. Under prevailing Ethereum mainnet conditions where the blob base fee frequently remains below 10~gwei, blobs provide consistent orders-of-magnitude savings over calldata.
@@ -48,14 +48,14 @@ Our packing ablation demonstrates that while dense 254-bit packing (\texttt{FE25
 \subsection{RQ4: Retrieval Study Across Public Infrastructure}
 \input{tables/table_retrieval.tex}
 
-Table~\ref{tab:retrieval_summary} presents the empirical results of our retrieval study against our live Sepolia deployment. Public consensus Beacon API endpoints failed $100\%$ of unauthenticated sidecar retrieval attempts due to internal server exceptions (HTTP 500) and tiered gateway paywalls (HTTP 400). Dedicated indexers such as Blobscan exhibited severe synchronization lag ($> 180,000$ blocks behind live head), returning false 404 Not Found errors. These findings prove empirically that public consensus endpoints cannot be relied upon as open scientific download servers.
+Table~\ref{tab:retrieval_summary} presents the empirical results of our retrieval probe against our live Sepolia deployment. Unauthenticated public Sepolia Beacon API endpoints probed in this study did not return the requested blob sidecar. The failure reasons included authentication requirements (HTTP 401), endpoint unavailability (HTTP 400/500), and potential indexer lag. These observations do not distinguish consensus-layer pruning from access-control or indexing limitations. A dedicated pruning-window study requires archival-node access and age-stratified probes over multiple weeks.
 
 \subsection{RQ5: Dual-Horizon Archival Bridge Verification}
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\columnwidth]{figures/fig_archival_latencies.pdf}
-\caption{Latency breakdown across Dual-Horizon Archival Bridge operations [Measured locally].}
+\caption{Latency breakdown across Dual-Horizon Archival Bridge operations [Local prototype measurement].}
 \label{fig:archival_latencies}
 \end{figure}
 
-Figure~\ref{fig:archival_latencies} reports the operational latency of the Dual-Horizon Archival Bridge. Uploading the 500-record OpenAlex dataset to the content-addressed store required only 0.837~ms. Following simulated consensus blob eviction, retrieving the payload exclusively from the archival store required 0.282~ms, and full post-expiry cryptographic verification (SHA-256, Content Hash, and Merkle root) completed in 7.633~ms.
+Figure~\ref{fig:archival_latencies} reports the operational latency of the Dual-Horizon Archival Bridge evaluated on our local content-addressed prototype store. Uploading the 500-record OpenAlex dataset to the local content-addressed store required 0.837~ms. Following simulated consensus blob eviction, retrieving the payload exclusively from the local prototype store required 0.282~ms, and full post-expiry cryptographic verification (SHA-256, Content Hash, and Merkle root) completed in 7.633~ms. These measurements represent a local prototype content-addressed store; public decentralized storage backends such as IPFS pinning services, Filecoin deals, and Arweave transactions were not evaluated in this study.

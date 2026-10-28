@@ -55,6 +55,6 @@ Data source: `benchmarks/journal-extension/security/results.json` and `tests/tes
 
 ## 3. Empirical Security Invariants
 
-1. **Detection Rate**: $15 / 15$ ($100.0\%$) adversarial scenarios are reliably detected and rejected.
-2. **False Positive Rate**: $0.0\%$ in clean-state evaluation.
+1. **Detection Rate**: All 15 implemented adversarial test scenarios were detected by the corresponding verification checks (15/15 implemented scenarios detected). These results demonstrate that the specified checks function as designed for the tested scenarios. They do not constitute a formal security proof or a complete coverage of possible attacks.
+2. **False Positive Rate**: 0/15 false positives in clean-state evaluation.
 3. **Availability Honesty**: The system explicitly acknowledges that data availability cannot be cryptographically summoned once pruned; availability is preserved through verified dual-horizon replication.

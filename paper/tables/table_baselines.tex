@@ -2,19 +2,21 @@
 \begin{table*}[t]
 \centering
 \scriptsize
-\caption{Guarantee-Aware Storage Architecture Comparison [Analytical model and published schedules]}
+\caption{Guarantee-Aware Storage Architecture Comparison [Estimated from documented pricing and Analytically derived]}
 \label{tab:guarantee_baselines}
-\begin{tabular}{p{2.2cm} p{2.8cm} p{4.0cm} p{4.8cm} r}
+\begin{tabular}{p{2.6cm} p{2.2cm} p{3.2cm} p{3.6cm} r p{2.0cm}}
 \hline
-System & Availability Period & Consensus Verification & Permanence Model & Cost / MiB (USD) \\
+System & Availability Period & Consensus Verification & Permanence Model & Cost / MiB & Evidence Type \\
 \hline
-EIP-4844 Blobs & Temporary ($\ge$ 4,096 epochs / $\sim$18.2 days) & Direct cryptographic commitment on Ethereum L1 (BLOBHASH / KZG) & Pruned by consensus nodes after retention window; requires external archivers & \$0.0520 \\
-Ethereum Calldata & Historical Chain Life (Full node history) & Merkle Patricia Trie transaction receipt root committed in block header & Retained indefinitely by archive and full nodes (subject to future EIP-4444 history pruning) & \$1.44 \\
-Ethereum SSTORE & Perpetual (Retained in state trie of every consensus node) & Direct real-time contract execution readability and EVM consensus state root & Permanent state until explicitly modified or cleared via SLOAD/SSTORE & \$2,949.12 \\
-InterPlanetary File System (IPFS) & Pin-Dependent (Available only while at least one node hosts the CID) & No native consensus verification; verifiable via multihash CID match & Volatile without dedicated pinning service or economic contract & \$0.0001 \\
-Filecoin & Contract-Dependent (typically 180 to 540 days per deal cycle) & Cryptographic Proof of Replication (PoRep) and Proof of Spacetime (PoSt) & Active contract renewal required; automatic termination upon deal expiration & \$0.0000 \\
-Arweave & Intended Long-Term ($\sim$200 years theoretical storage endowment) & Proof of Access (PoA / SPoRA) on independent blockweave & Protocol-enforced permanent retention funded by upfront fee endowment & \$0.0050 \\
-Amazon S3 (Standard) & Account-Dependent (SLA 99.99\% availability while subscription paid) & None (Proprietary SLA; trusted corporate provider) & Deleted upon account cancellation, subscription lapse, or TOS dispute & \$0.0000 \\
+EIP-4844 Blobs (2 gwei baseline) & Temporary ($\ge$ 4,096 epochs / $\sim$18.2 days) & Direct cryptographic commitment on Ethereum L1 (BLOBHASH / KZG) & Pruned by consensus nodes after retention window; requires external archivers & \$0.0520 & measured \\
+EIP-4844 Blobs (1 wei minimal fee) & Temporary ($\ge$ 4,096 epochs / $\sim$18.2 days) & Direct cryptographic commitment on Ethereum L1 (BLOBHASH / KZG) & Pruned by consensus nodes after retention window; requires external archivers & \$0.0009 & analytically derived \\
+Ethereum Calldata (Pre-EIP-7623) & Historical Chain Life (Full node history) & Merkle Patricia Trie transaction receipt root committed in block header & Retained indefinitely by archive and full nodes (subject to future EIP-4444 history pruning) & \$1.44 & analytically derived \\
+Ethereum Calldata (Post-EIP-7623 Floor) & Historical Chain Life (Full node history) & Merkle Patricia Trie transaction receipt root committed in block header & Retained indefinitely by archive and full nodes (subject to future EIP-4444 history pruning) & \$3.60 & analytically derived \\
+Ethereum SSTORE & Perpetual (Retained in state trie of every consensus node) & Direct real-time contract execution readability and EVM consensus state root & Permanent state until explicitly modified or cleared via SLOAD/SSTORE & \$2,949.12 & analytically derived \\
+InterPlanetary File System (IPFS Pinning) & Pin-Dependent (Available only while at least one node hosts the CID) & No native consensus verification; verifiable via multihash CID match & Volatile without dedicated pinning service or economic contract & \$0.0001 & estimated from documented pricing \\
+Filecoin (Storage Deal) & Contract-Dependent (typically 180 to 540 days per deal cycle) & Cryptographic Proof of Replication (PoRep) and Proof of Spacetime (PoSt) & Active contract renewal required; automatic termination upon deal expiration & \$0.0000 & estimated from documented pricing \\
+Arweave (Storage Endowment) & Intended Long-Term ($\sim$200 years theoretical storage endowment) & Proof of Access (PoA / SPoRA) on independent blockweave & Protocol-enforced permanent retention funded by upfront fee endowment & \$0.0050 & estimated from documented pricing \\
+Amazon S3 (Standard Storage) & Account-Dependent (SLA 99.99\% availability while subscription paid) & None (Proprietary SLA; trusted corporate provider) & Deleted upon account cancellation, subscription lapse, or TOS dispute & \$0.0000 & estimated from documented pricing \\
 \hline
 \end{tabular}
 \end{table*}

@@ -76,18 +76,41 @@ def generate_tables():
         f.write("% Auto-generated from retrieval/summary.csv\n")
         f.write("\\begin{table*}[t]\n\\centering\n\\small\n")
         f.write(
-            "\\caption{Sidecar Retrieval Outcomes Across Infrastructure Tiers [Empirical retrieval attempts]}\n"
+            "\\caption{Sidecar Retrieval Outcomes Across Infrastructure Tiers [Public endpoint probes and local verification]}\n"
         )
         f.write("\\label{tab:retrieval_summary}\n")
         f.write(
             "\\begin{tabular}{llrrrl}\n\\hline\n"
             "Endpoint Identifier & Source Type & Attempts & Success Rate & Median Latency (ms) & Observed Errors \\\\\n\\hline\n"
         )
-        for _, row in df_ret.iterrows():
+        # Section A: Public Endpoint Probes
+        f.write(
+            "\\multicolumn{6}{l}{\\textbf{A. Public Endpoint Probes [Public endpoint probe]}} \\\\\n\\hline\n"
+        )
+        for _, row in df_ret[
+            df_ret["source_type"].isin(["beacon_api", "beacon_indexer"])
+        ].iterrows():
             ep = escape_latex(row["endpoint_id"])
             st = escape_latex(row["source_type"])
-            att = row["attempt_count"]
-            sr = f"{row['success_rate_pct']:.1f}\\%"
+            att = int(row["attempt_count"])
+            succ = int(row["success_count"])
+            sr = f"{succ}/{att} ({row['success_rate_pct']:.1f}\\%)"
+            lat = f"{row['median_latency_ms']:.1f}"
+            err = escape_latex(row["observed_error_categories"])
+            f.write(f"{ep} & {st} & {att} & {sr} & {lat} & {err} \\\\\n")
+        f.write("\\hline\n")
+        # Section B: Local Verification
+        f.write(
+            "\\multicolumn{6}{l}{\\textbf{B. Local Verification [Simulated / Local prototype measurement]}} \\\\\n\\hline\n"
+        )
+        for _, row in df_ret[
+            df_ret["source_type"].isin(["simulated_archival_cache", "local_cache"])
+        ].iterrows():
+            ep = escape_latex(row["endpoint_id"])
+            st = escape_latex(row["source_type"])
+            att = int(row["attempt_count"])
+            succ = int(row["success_count"])
+            sr = f"{succ}/{att} ({row['success_rate_pct']:.1f}\\%)"
             lat = f"{row['median_latency_ms']:.1f}"
             err = escape_latex(row["observed_error_categories"])
             f.write(f"{ep} & {st} & {att} & {sr} & {lat} & {err} \\\\\n")
@@ -101,12 +124,12 @@ def generate_tables():
         f.write("% Auto-generated from baseline_comparison.csv\n")
         f.write("\\begin{table*}[t]\n\\centering\n\\scriptsize\n")
         f.write(
-            "\\caption{Guarantee-Aware Storage Architecture Comparison [Analytical model and published schedules]}\n"
+            "\\caption{Guarantee-Aware Storage Architecture Comparison [Estimated from documented pricing and Analytically derived]}\n"
         )
         f.write("\\label{tab:guarantee_baselines}\n")
         f.write(
-            "\\begin{tabular}{p{2.2cm} p{2.8cm} p{4.0cm} p{4.8cm} r}\n\\hline\n"
-            "System & Availability Period & Consensus Verification & Permanence Model & Cost / MiB (USD) \\\\\n\\hline\n"
+            "\\begin{tabular}{p{2.6cm} p{2.2cm} p{3.2cm} p{3.6cm} r p{2.0cm}}\n\\hline\n"
+            "System & Availability Period & Consensus Verification & Permanence Model & Cost / MiB & Evidence Type \\\\\n\\hline\n"
         )
         for _, row in df_base.iterrows():
             sys_name = escape_latex(row["system_name"])
@@ -115,7 +138,10 @@ def generate_tables():
             perm = escape_latex(row["permanence_model"])
             cost = row["cost_model_usd_per_mib"]
             c_str = f"\\${cost:.4f}" if cost < 1 else f"\\${cost:,.2f}"
-            f.write(f"{sys_name} & {avail} & {cv} & {perm} & {c_str} \\\\\n")
+            ev_type = escape_latex(row["evidence_type"].replace("_", " "))
+            f.write(
+                f"{sys_name} & {avail} & {cv} & {perm} & {c_str} & {ev_type} \\\\\n"
+            )
         f.write("\\hline\n\\end{tabular}\n\\end{table*}\n")
 
     # 4. Table: Adversarial Security Results
@@ -132,7 +158,7 @@ def generate_tables():
         f.write("% Auto-generated from security/results.json\n")
         f.write("\\begin{table*}[t]\n\\centering\n\\scriptsize\n")
         f.write(
-            "\\caption{Adversarial Threat Scenarios and Detection Invariants [Tested security suite]}\n"
+            "\\caption{Adversarial Threat Scenarios and Detection Invariants [Tested security suite / Measured locally]}\n"
         )
         f.write("\\label{tab:security_matrix}\n")
         f.write(
