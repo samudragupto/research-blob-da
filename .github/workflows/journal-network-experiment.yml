@@ -1,0 +1,70 @@
+name: Sepolia Network Experiments (Manual Dispatch)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_approval:
+        description: "Type APPROVED to authorize expenditure of testnet ETH"
+        required: true
+        default: ""
+      max_transactions:
+        description: "Maximum transaction count limit"
+        required: true
+        default: "5"
+      max_total_eth:
+        description: "Maximum total testnet ETH spending limit"
+        required: true
+        default: "0.05"
+      max_fee_per_tx_eth:
+        description: "Maximum fee per transaction in ETH"
+        required: true
+        default: "0.01"
+
+concurrency:
+  group: sepolia-network-experiments
+  cancel-in-progress: false
+
+jobs:
+  run-network-experiments:
+    name: Execute Budget-Controlled Sepolia Experiment Harness
+    runs-on: ubuntu-latest
+    environment: sepolia
+    steps:
+      - name: Verify Explicit Authorization Input
+        run: |
+          if [ "${{ github.event.inputs.confirm_approval }}" != "APPROVED" ]; then
+            echo "FATAL: Explicit confirmation string 'APPROVED' was not provided."
+            exit 1
+          fi
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt web3
+
+      - name: Execute Network Harness
+        env:
+          JOURNAL_NETWORK_EXPERIMENTS_APPROVED: "true"
+          JOURNAL_MAX_TRANSACTIONS: ${{ github.event.inputs.max_transactions }}
+          JOURNAL_MAX_TOTAL_TESTNET_ETH: ${{ github.event.inputs.max_total_eth }}
+          JOURNAL_MAX_FEE_PER_TRANSACTION_ETH: ${{ github.event.inputs.max_fee_per_tx_eth }}
+          SEPOLIA_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL }}
+          SEPOLIA_PRIVATE_KEY: ${{ secrets.SEPOLIA_PRIVATE_KEY }}
+        run: |
+          python python/network_harness.py
+
+      - name: Upload Experiment Receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sepolia-network-results
+          path: benchmarks/journal-extension/network/
+          if-no-files-found: warn
