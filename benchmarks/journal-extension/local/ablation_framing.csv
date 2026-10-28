@@ -1,0 +1,3 @@
+framing_strategy,framing_overhead_bytes_per_record,total_payload_bytes,generation_latency_ms,random_access_support,reconstruction_simplicity
+Canonical Length-Prefixed Record Stream,4,212517,3.404,O(N) sequential scan or external index,Standardized RFC 8785 streaming parser
+Fixed-Size 4 KiB Chunked Block Index,Variable (~32B per chunk index),215128,3.523,O(1) direct block addressing,Requires two-phase index + block assembly

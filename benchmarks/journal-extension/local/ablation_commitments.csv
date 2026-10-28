@@ -1,0 +1,4 @@
+commitment_level,commitment_bytes,generation_time_ms,onchain_storage_slots,verification_capability,selective_retrieval_verification
+Level 1: Content Hash Only (SHA-256),32,3.048,1,Whole-dataset integrity match,No (Requires full dataset download)
+Level 2: Content Hash + Merkle Root (Keccak-256),64,12.082,2,Whole-dataset + single record inclusion proof,Yes (Log2(N) proof path without downloading all records)
+Level 3: Full Metadata & Property Claims,128,14.582,4,Inclusion + optimistic dispute game assertions,Yes (Optimistic fraud refutation enabled)

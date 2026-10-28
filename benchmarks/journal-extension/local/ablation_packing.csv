@@ -1,0 +1,3 @@
+packing_strategy,usable_bytes_per_blob,packing_waste_overhead_pct,encoding_latency_mean_ms,encoding_latency_std_ms,throughput_mib_s,evm_compatibility
+FE31 (Byte-Aligned Modulus Safe),126976,3.125,1.903,0.3,60.15,Trivial slice extraction without bit-shifting
+FE254 (Bit-Packed 254-bit Safe),130048,0.781,387.991,9.383,0.29,Requires expensive bit-manipulation gas on-chain

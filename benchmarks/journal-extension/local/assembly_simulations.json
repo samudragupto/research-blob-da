@@ -1,0 +1,42 @@
+{
+  "timestamp_utc": "2026-10-28T00:00:00Z",
+  "simulations": [
+    {
+      "simulation": "Normal Multi-blob Assembly",
+      "result": "SUCCESS",
+      "integrity_verified": true,
+      "notes": "Reconstructed exact 200000 bytes across 2 blobs."
+    },
+    {
+      "simulation": "Missing Blob Simulation",
+      "result": "DETECTED_AND_REJECTED",
+      "detection_mechanism": "Header blob_count (2) != received blobs (1)",
+      "integrity_verified": true,
+      "error_message": "Missing blob detected!"
+    },
+    {
+      "simulation": "Reordered Blob Simulation",
+      "result": "DETECTED_AND_REJECTED",
+      "detection_mechanism": "Sequential blob_index assertion in header",
+      "integrity_verified": true,
+      "error_message": "Blob sequence mismatch: expected index 0, got 1"
+    },
+    {
+      "simulation": "Corrupted Blob Simulation",
+      "result": "DETECTED_AND_REJECTED",
+      "detection_mechanism": "Zstandard stream checksum and SHA-256 payload mismatch",
+      "integrity_verified": true,
+      "error_message": "decompression error: did not decompress full frame"
+    },
+    {
+      "simulation": "Multi-Transaction 50 MiB Dataset Scaling",
+      "result": "ANALYTICALLY_VERIFIED",
+      "payload_bytes": 52428800,
+      "total_blobs_required": 414,
+      "ethereum_transactions_required": 69,
+      "max_blobs_per_tx": 6,
+      "contract_support": "appendExternalBlobs allows multi-tx aggregation prior to finalizeDataset",
+      "integrity_verified": true
+    }
+  ]
+}
