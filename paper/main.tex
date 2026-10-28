@@ -1,7 +1,6 @@
-\documentclass[10pt,twocolumn]{article}
+\documentclass[journal,10pt,twocolumn]{IEEEtran}
 
 \usepackage[utf8]{inputenc}
-\usepackage[margin=0.75in]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{graphicx}
@@ -18,21 +17,22 @@
     urlcolor=blue!70!black
 }
 
-\title{\textbf{Beyond Rollups: Evaluating EIP-4844 Blobs as Temporary Verifiable Data Availability for Research Artifacts}}
+\title{Beyond Rollups: Evaluating EIP-4844 Blobs as Temporary Verifiable Data Availability for Research Artifacts}
 
 \author{
-    \textbf{Arrhat Nag} \\
-    \texttt{samudragupto} \\
-    \small GitHub: \url{https://github.com/samudragupto/research-blob-da}
+    Arrhat~Nag%
+    \thanks{Arrhat Nag is an independent researcher. Correspondence: \texttt{samudragupto}. Source repository: \url{https://github.com/samudragupto/research-blob-da}.}
 }
-
-\date{October 2026}
 
 \begin{document}
 
 \maketitle
 
 \input{sections/abstract.tex}
+
+\begin{IEEEkeywords}
+Ethereum, EIP-4844, Data Availability, Scientific Artifacts, Reproducibility, KZG Commitments, Content-Addressed Storage.
+\end{IEEEkeywords}
 
 \input{sections/introduction.tex}
 \input{sections/background.tex}
@@ -47,7 +47,7 @@
 \input{sections/reproducibility.tex}
 \input{sections/conclusion.tex}
 
-\bibliographystyle{plain}
+\bibliographystyle{ieeetr}
 \bibliography{references}
 
 \end{document}

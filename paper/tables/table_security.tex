@@ -4,10 +4,10 @@
 \scriptsize
 \caption{Adversarial Threat Scenarios and Detection Invariants [Tested security suite / Measured locally]}
 \label{tab:security_matrix}
-\begin{tabular}{p{1.4cm} p{4.2cm} p{8.2cm} p{1.6cm}}
-\hline
+\begin{tabular}{p{1.2cm} p{4.2cm} p{8.0cm} p{2.4cm}}
+\toprule
 ID & Threat Scenario & Detection Mechanism & Outcome \\
-\hline
+\midrule
 SEC-01 & Modified Blob Bytes & Zstandard decompression integrity failure or KZG versioned hash mismatch & DETECTED AND REJECTED \\
 SEC-02 & Modified Canonical Payload & keccak256(canonical\_stream) $\neq$ onchain contentHash & DETECTED AND REJECTED \\
 SEC-03 & Incorrect Metadata (Record Count Mismatch) & Record count mismatch during canonical stream deserialization & DETECTED AND REJECTED \\
@@ -23,6 +23,6 @@ SEC-12 & Malicious Archival Backend Tampering & SHA-256 and Content Hash check f
 SEC-13 & Archival Identifier Substitution & Smart contract checks dataset finalization; clients verify CID contents match contentHash & DETECTED AND REJECTED \\
 SEC-14 & Encryption Key Loss / Mismatch & AEAD authentication tag failure during client-side decryption & DETECTED AND ISOLATED \\
 SEC-15 & Registry Metadata Hash Mismatch & keccak256(offchain\_manifest) $\neq$ onchain metadataHash & DETECTED AND REJECTED \\
-\hline
+\bottomrule
 \end{tabular}
 \end{table*}

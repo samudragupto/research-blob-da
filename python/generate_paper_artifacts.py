@@ -42,15 +42,17 @@ def generate_tables():
         os.path.join(TABLES_DIR, "table_local_matrix.tex"), "w", encoding="utf-8"
     ) as f:
         f.write("% Auto-generated from summary_local_matrix.csv\n")
-        f.write("\\begin{table*}[t]\n\\centering\n\\small\n")
+        f.write(
+            "\\begin{table*}[t]\n\\centering\n\\small\n\\setlength{\\tabcolsep}{4pt}\n"
+        )
         f.write(
             "\\caption{Local Evaluation Matrix Across Scientific and Synthetic Datasets [Measured locally]}\n"
         )
         f.write("\\label{tab:local_matrix}\n")
         f.write(
-            "\\begin{tabular}{lrrrrrrr}\n\\hline\n"
+            "\\begin{tabular}{p{4.8cm}rrrrrrr}\n\\toprule\n"
             "Dataset & Canonical Size & Comp. Size & Ratio & Blobs & Waste & Encoding Latency & Throughput \\\\\n"
-            "& (KiB) & (KiB) & & Count & (\\%) & Mean $\\pm$ SD (ms) & (MiB/s) \\\\\n\\hline\n"
+            "& (KiB) & (KiB) & & Count & (\\%) & Mean $\\pm$ SD (ms) & (MiB/s) \\\\\n\\midrule\n"
         )
         for _, row in df_local.iterrows():
             d_name = escape_latex(row["dataset_name"])
@@ -66,7 +68,7 @@ def generate_tables():
             f.write(
                 f"{d_name} & {can_kib:.1f} & {comp_kib:.1f} & {ratio:.2f}$\\times$ & {blobs} & {waste:.1f}\\% & {lat_str} & {tp:.1f} \\\\\n"
             )
-        f.write("\\hline\n\\end{tabular}\n\\end{table*}\n")
+        f.write("\\bottomrule\n\\end{tabular}\n\\end{table*}\n")
 
     # 2. Table: Retrieval Evaluation
     df_ret = pd.read_csv("benchmarks/journal-extension/retrieval/summary.csv")
@@ -74,47 +76,49 @@ def generate_tables():
         os.path.join(TABLES_DIR, "table_retrieval.tex"), "w", encoding="utf-8"
     ) as f:
         f.write("% Auto-generated from retrieval/summary.csv\n")
-        f.write("\\begin{table*}[t]\n\\centering\n\\small\n")
+        f.write(
+            "\\begin{table*}[t]\n\\centering\n\\small\n\\setlength{\\tabcolsep}{4pt}\n"
+        )
         f.write(
             "\\caption{Sidecar Retrieval Outcomes Across Infrastructure Tiers [Public endpoint probes and local verification]}\n"
         )
         f.write("\\label{tab:retrieval_summary}\n")
         f.write(
-            "\\begin{tabular}{llrrrl}\n\\hline\n"
-            "Endpoint Identifier & Source Type & Attempts & Success Rate & Median Latency (ms) & Observed Errors \\\\\n\\hline\n"
+            "\\begin{tabular}{p{4.0cm}p{2.3cm}rrrp{3.8cm}}\n\\toprule\n"
+            "Endpoint Identifier & Source Type & Attempts & Success Rate & Median Latency (ms) & Observed Errors \\\\\n\\midrule\n"
         )
         # Section A: Public Endpoint Probes
         f.write(
-            "\\multicolumn{6}{l}{\\textbf{A. Public Endpoint Probes [Public endpoint probe]}} \\\\\n\\hline\n"
+            "\\multicolumn{6}{l}{\\textbf{A. Public Endpoint Probes [Public endpoint probe]}} \\\\\n\\midrule\n"
         )
         for _, row in df_ret[
             df_ret["source_type"].isin(["beacon_api", "beacon_indexer"])
         ].iterrows():
-            ep = escape_latex(row["endpoint_id"])
-            st = escape_latex(row["source_type"])
+            ep = f"\\path{{{row['endpoint_id']}}}"
+            st = f"\\path{{{row['source_type']}}}"
             att = int(row["attempt_count"])
             succ = int(row["success_count"])
             sr = f"{succ}/{att} ({row['success_rate_pct']:.1f}\\%)"
             lat = f"{row['median_latency_ms']:.1f}"
             err = escape_latex(row["observed_error_categories"])
             f.write(f"{ep} & {st} & {att} & {sr} & {lat} & {err} \\\\\n")
-        f.write("\\hline\n")
+        f.write("\\midrule\n")
         # Section B: Local Verification
         f.write(
-            "\\multicolumn{6}{l}{\\textbf{B. Local Verification [Simulated / Local prototype measurement]}} \\\\\n\\hline\n"
+            "\\multicolumn{6}{l}{\\textbf{B. Local Verification [Simulated / Local prototype measurement]}} \\\\\n\\midrule\n"
         )
         for _, row in df_ret[
             df_ret["source_type"].isin(["simulated_archival_cache", "local_cache"])
         ].iterrows():
-            ep = escape_latex(row["endpoint_id"])
-            st = escape_latex(row["source_type"])
+            ep = f"\\path{{{row['endpoint_id']}}}"
+            st = f"\\path{{{row['source_type']}}}"
             att = int(row["attempt_count"])
             succ = int(row["success_count"])
             sr = f"{succ}/{att} ({row['success_rate_pct']:.1f}\\%)"
             lat = f"{row['median_latency_ms']:.1f}"
             err = escape_latex(row["observed_error_categories"])
             f.write(f"{ep} & {st} & {att} & {sr} & {lat} & {err} \\\\\n")
-        f.write("\\hline\n\\end{tabular}\n\\end{table*}\n")
+        f.write("\\bottomrule\n\\end{tabular}\n\\end{table*}\n")
 
     # 3. Table: Guarantee-Aware Baselines
     df_base = pd.read_csv("benchmarks/journal-extension/baseline_comparison.csv")
@@ -128,8 +132,8 @@ def generate_tables():
         )
         f.write("\\label{tab:guarantee_baselines}\n")
         f.write(
-            "\\begin{tabular}{p{2.6cm} p{2.2cm} p{3.2cm} p{3.6cm} r p{2.0cm}}\n\\hline\n"
-            "System & Availability Period & Consensus Verification & Permanence Model & Cost / MiB & Evidence Type \\\\\n\\hline\n"
+            "\\begin{tabular}{p{2.6cm} p{2.2cm} p{3.2cm} p{3.6cm} r p{2.0cm}}\n\\toprule\n"
+            "System & Availability Period & Consensus Verification & Permanence Model & Cost / MiB & Evidence Type \\\\\n\\midrule\n"
         )
         for _, row in df_base.iterrows():
             sys_name = escape_latex(row["system_name"])
@@ -142,7 +146,7 @@ def generate_tables():
             f.write(
                 f"{sys_name} & {avail} & {cv} & {perm} & {c_str} & {ev_type} \\\\\n"
             )
-        f.write("\\hline\n\\end{tabular}\n\\end{table*}\n")
+        f.write("\\bottomrule\n\\end{tabular}\n\\end{table*}\n")
 
     # 4. Table: Adversarial Security Results
     with open(
@@ -162,8 +166,8 @@ def generate_tables():
         )
         f.write("\\label{tab:security_matrix}\n")
         f.write(
-            "\\begin{tabular}{p{1.4cm} p{4.2cm} p{8.2cm} p{1.6cm}}\n\\hline\n"
-            "ID & Threat Scenario & Detection Mechanism & Outcome \\\\\n\\hline\n"
+            "\\begin{tabular}{p{1.2cm} p{4.2cm} p{8.0cm} p{2.4cm}}\n\\toprule\n"
+            "ID & Threat Scenario & Detection Mechanism & Outcome \\\\\n\\midrule\n"
         )
         for sc in sec_data:
             s_id = escape_latex(sc["id"])
@@ -171,7 +175,7 @@ def generate_tables():
             mech = escape_latex(sc["detection_mechanism"])
             out = escape_latex(sc["test_status"].replace("_", " "))
             f.write(f"{s_id} & {s_name} & {mech} & {out} \\\\\n")
-        f.write("\\hline\n\\end{tabular}\n\\end{table*}\n")
+        f.write("\\bottomrule\n\\end{tabular}\n\\end{table*}\n")
 
     print("[OK] LaTeX tables generated in paper/tables/")
 
