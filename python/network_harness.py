@@ -65,8 +65,14 @@ def generate_planned_matrix() -> list[dict[str, Any]]:
     """Generates the 30-submission experimental matrix across 3 dataset classes and 3 payload sizes."""
     datasets = [
         ("real_scholarly_openalex", "OpenAlex Scholarly Works"),
-        ("real_climate_sensor", "Atmospheric Sensor Observations"),
-        ("real_ml_training_trace", "Transformer ML Training Trace"),
+        (
+            "synthetic_climate_sensor_noaa_format",
+            "Atmospheric Sensor Observations (Synthetic NOAA Format)",
+        ),
+        (
+            "synthetic_ml_training_trace",
+            "Transformer ML Training Trace (Synthetic PyTorch Format)",
+        ),
     ]
     size_classes = [
         ("small_1blob", 1),

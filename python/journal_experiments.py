@@ -39,6 +39,8 @@ if __package__ is None or __package__ == "":
         HEADER_SIZE,
         USABLE_BYTES_FE31,
         USABLE_BYTES_FE254,
+        calculate_blob_count,
+        get_usable_payload_bytes_per_blob,
         pack_fe31,
         pack_fe254,
         unpack_fe31,
@@ -154,8 +156,8 @@ def run_local_matrix():
 
             # 2. Packing into blobs
             t1 = time.perf_counter()
-            body_capacity = USABLE_BYTES_FE31 - HEADER_SIZE
-            blobs_needed = max(1, math.ceil(len(compressed) / body_capacity))
+            body_capacity = get_usable_payload_bytes_per_blob("fe31")
+            blobs_needed = calculate_blob_count(len(compressed), "fe31")
             blobs = []
             for b_i in range(blobs_needed):
                 chunk = compressed[b_i * body_capacity : (b_i + 1) * body_capacity]

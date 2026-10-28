@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "random_seed": 42,
   "generation_timestamp_utc": "2026-10-28T00:00:00Z",
   "datasets": [
@@ -7,14 +7,15 @@
       "dataset_id": "real_scholarly_openalex",
       "dataset_name": "OpenAlex Scholarly Works Metadata",
       "category": "Real Academic Metadata",
+      "origin": "external_download",
       "format": "JSON",
       "license": "CC0 1.0 Universal",
       "source_url": "https://api.openalex.org/works?filter=publication_year:2023,is_oa:true&sort=cited_by_count:desc",
       "retrieval_date_utc": "2026-10-27T16:20:00Z",
       "record_count": 500,
       "source_file_path": "data/real_academic_openalex.json",
-      "source_bytes": 272997,
-      "source_sha256": "fbe8f9659276ea6e20a4868696c3c095badf54dbf9f8a9e8e208feb3463265ea",
+      "source_bytes": 264057,
+      "source_sha256": "af65584227c707d3c16f7841a233070808ab1ed070f10f32e841082889a8c544",
       "canonical_payload_bytes": 212517,
       "canonical_payload_sha256": "0b7175bfbd6aa0cf048d8c9e5bf1a2c51302531fcce936871bcb84d8b919c12c",
       "retained_fields": [
@@ -29,16 +30,17 @@
         "is_oa",
         "concepts"
       ],
-      "description": "500 real academic works harvested from OpenAlex API sorted by citation count."
+      "description": "500 real academic works harvested from OpenAlex API sorted by citation count. Bit-for-bit identical to the frozen v0.1.0 baseline fixture."
     },
     {
-      "dataset_id": "real_climate_sensor",
-      "dataset_name": "Atmospheric & Environmental Sensor Observations",
-      "category": "Real Environmental Telemetry",
+      "dataset_id": "synthetic_climate_sensor_noaa_format",
+      "dataset_name": "Atmospheric & Environmental Sensor Observations (Synthetic NOAA Format)",
+      "category": "Synthetic Environmental Telemetry (NOAA Format)",
+      "origin": "local_generator_noaa_schema",
       "format": "JSON (from CSV timeseries)",
-      "license": "Public Domain / NOAA Open Data Policy",
-      "source_url": "https://www.ncei.noaa.gov/products/land-based-station/global-historical-climatology-network-daily",
-      "retrieval_date_utc": "2026-10-27T17:00:00Z",
+      "license": "MIT / Public Domain Equivalent Schema",
+      "source_url": "Local generator (python/generate_synthetic_data.py) using NOAA ISD schema",
+      "retrieval_date_utc": "2026-10-28T00:00:00Z",
       "record_count": 5000,
       "source_file_path": "data/journal/climate_sensor_sample.json",
       "source_bytes": 1051953,
@@ -54,16 +56,17 @@
         "wind_speed_ms",
         "pm25"
       ],
-      "description": "5,000 meteorological and PM2.5 observation records across multiple surface weather stations."
+      "description": "5,000 synthetic meteorological and PM2.5 observation records generated locally using schema and distributions matching NOAA surface weather stations."
     },
     {
-      "dataset_id": "real_ml_training_trace",
-      "dataset_name": "Transformer Model Training Step Trace",
-      "category": "Real ML Training Telemetry",
+      "dataset_id": "synthetic_ml_training_trace",
+      "dataset_name": "Transformer Model Training Step Trace (Synthetic PyTorch Format)",
+      "category": "Synthetic ML Training Telemetry",
+      "origin": "local_generator_pytorch_schema",
       "format": "JSONL",
-      "license": "Apache 2.0 / MIT",
-      "source_url": "https://github.com/huggingface/transformers / PyTorch Training Metric Telemetry",
-      "retrieval_date_utc": "2026-10-27T17:15:00Z",
+      "license": "MIT / Apache 2.0 Generator",
+      "source_url": "Local generator (python/generate_synthetic_data.py) using PyTorch telemetry schema",
+      "retrieval_date_utc": "2026-10-28T00:00:00Z",
       "record_count": 5000,
       "source_file_path": "data/journal/ml_training_trace.jsonl",
       "source_bytes": 531339,
@@ -79,12 +82,13 @@
         "grad_norm",
         "val_loss"
       ],
-      "description": "5,000 step-level training metrics from a distributed Transformer language model training run."
+      "description": "5,000 synthetic step-level training metrics generated locally using schema matching distributed Transformer language model training runs."
     },
     {
       "dataset_id": "synthetic_scale_110k",
       "dataset_name": "Deterministic Scaling Synthetic Dataset (110 KiB)",
       "category": "Deterministic Synthetic Benchmark",
+      "origin": "local_deterministic_generator",
       "format": "Canonical RFC 8785 Framed Stream",
       "license": "MIT",
       "source_url": "Internal Deterministic Generator (Seed 42)",
@@ -110,6 +114,7 @@
       "dataset_id": "synthetic_scale_1137k",
       "dataset_name": "Deterministic Scaling Synthetic Dataset (1137 KiB)",
       "category": "Deterministic Synthetic Benchmark",
+      "origin": "local_deterministic_generator",
       "format": "Canonical RFC 8785 Framed Stream",
       "license": "MIT",
       "source_url": "Internal Deterministic Generator (Seed 42)",
@@ -135,6 +140,7 @@
       "dataset_id": "synthetic_scale_5712k",
       "dataset_name": "Deterministic Scaling Synthetic Dataset (5712 KiB)",
       "category": "Deterministic Synthetic Benchmark",
+      "origin": "local_deterministic_generator",
       "format": "Canonical RFC 8785 Framed Stream",
       "license": "MIT",
       "source_url": "Internal Deterministic Generator (Seed 42)",
@@ -160,6 +166,7 @@
       "dataset_id": "synthetic_scale_22909k",
       "dataset_name": "Deterministic Scaling Synthetic Dataset (22909 KiB)",
       "category": "Deterministic Synthetic Benchmark",
+      "origin": "local_deterministic_generator",
       "format": "Canonical RFC 8785 Framed Stream",
       "license": "MIT",
       "source_url": "Internal Deterministic Generator (Seed 42)",
@@ -185,6 +192,7 @@
       "dataset_id": "negative_control_incompressible_1mib",
       "dataset_name": "Incompressible Pseudo-Random Binary Negative Control",
       "category": "Negative Control",
+      "origin": "local_seeded_prng_fixture",
       "format": "Raw Binary",
       "license": "MIT / Public Domain",
       "source_url": "Deterministic Mersenne Twister PRNG (Seed 42)",
@@ -198,7 +206,7 @@
       "retained_fields": [
         "raw_binary_stream"
       ],
-      "description": "1 MiB high-entropy pseudo-random bytes designed to evaluate zero-compression worst-case limits."
+      "description": "1 MiB high-entropy pseudo-random bytes generated via Python random.Random(42).randbytes(1048576) committed as a deterministic fixture to evaluate zero-compression worst-case limits."
     }
   ]
 }

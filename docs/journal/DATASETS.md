@@ -9,8 +9,8 @@ This document specifies the five scientific and benchmark dataset classes evalua
 | Dataset ID | Class / Category | Primary Source | License | Records | Source Bytes | Canonical Bytes | Compression Ratio (zstd-3) |
 |---|---|---|---|---|---|---|---|
 | `real_scholarly_openalex` | Real Academic Metadata | OpenAlex API | CC0 1.0 Universal | 500 | 264,057 | 212,517 | 4.13x |
-| `real_climate_sensor` | Real Environmental Telemetry | NOAA GSOD / Global Air Quality | Public Domain | 5,000 | 794,842 | 781,950 | 3.82x |
-| `real_ml_training_trace` | Real ML Training Telemetry | PyTorch Transformer Training Logs | Apache 2.0 / MIT | 5,000 | 541,339 | 541,339 | 4.95x |
+| `synthetic_climate_sensor_noaa_format` | Synthetic Environmental Telemetry (NOAA Format) | Local Generator (NOAA ISD Schema) | MIT / Public Domain Equivalent Schema | 5,000 | 1,051,953 | 781,950 | 10.11x |
+| `synthetic_ml_training_trace` | Synthetic ML Training Telemetry | Local Generator (PyTorch Schema) | MIT / Apache 2.0 Generator | 5,000 | 531,339 | 541,339 | 5.78x |
 | `synthetic_scale_*` | Deterministic Scaling Benchmarks | PRNG Generator (Seed `42`) | MIT | Scaled | Scaled | 100K - 23M | 4.40x - 4.60x |
 | `negative_control_1mib` | Negative Control (Incompressible) | High-Entropy PRNG (Seed `42`) | MIT | 1 | 1,048,576 | 1,048,576 | 1.00x (No Gain) |
 
@@ -30,31 +30,33 @@ This document specifies the five scientific and benchmark dataset classes evalua
 - **Canonical Payload Size**: 212,517 bytes
 - **Canonical Payload SHA-256**: `0b7175bfbd6aa0cf048d8c9e5bf1a2c51302531fcce936871bcb84d8b919c12c`
 - **Retained Fields**: `id`, `doi`, `title`, `publication_year`, `publication_date`, `cited_by_count`, `type`, `first_author`, `is_oa`, `concepts`.
-- **Inclusion Rationale**: Represents real-world academic bibliographic records with nested string structures, author affiliations, and concept taxonomies.
+- **Inclusion Rationale**: Represents real-world academic bibliographic records with nested string structures, author affiliations, and concept taxonomies. Preserves bit-for-bit parity with the frozen v0.1.0 baseline.
 
-### 2.2 Real Environmental Telemetry: Atmospheric Observations
-- **Identifier**: `real_climate_sensor`
-- **Source**: NOAA Global Surface Summary of the Day / Air Quality Telemetry
-- **Retrieval Date**: 2026-10-27T17:00:00Z
-- **License**: Public Domain (US Government Open Data Policy)
+### 2.2 Synthetic Environmental Telemetry: Atmospheric Observations (NOAA Format)
+- **Identifier**: `synthetic_climate_sensor_noaa_format`
+- **Source**: Local synthetic generator (`python/generate_synthetic_data.py`) implementing NOAA Integrated Surface Database (ISD) schema
+- **Generation Date**: 2026-10-28T00:00:00Z
+- **License**: MIT / Public Domain Equivalent Schema
 - **Record Count**: 5,000 observations
-- **Source File Size**: 794,842 bytes
+- **Source File Size**: 1,051,953 bytes
+- **Source SHA-256**: `6f2a156a187b25c083732b6e41425c12c8f169eaeb181fe4442f2dd80473a109`
 - **Canonical Payload Size**: 781,950 bytes
-- **Canonical Payload SHA-256**: Recorded in `data/journal/manifests/dataset_provenance.json`
+- **Canonical Payload SHA-256**: `07e9799b6b4df3a1c7cbbdd843ec2e23d9d4273e718d3e1e53a1267f4bd8dfc8`
 - **Retained Fields**: `timestamp`, `station_id`, `temperature_c`, `humidity_pct`, `pressure_hpa`, `wind_speed_ms`, `pm25`.
-- **Inclusion Rationale**: Evaluates dense numerical time-series observations from physical environmental sensor networks with high floating-point precision and station groupings.
+- **Inclusion Rationale**: Evaluates dense numerical time-series observations from physical environmental sensor networks with high floating-point precision and station groupings. Because these data points were synthesized locally to match NOAA ISD distributions rather than downloaded directly from a NOAA endpoint, this corpus is accurately classified as synthetic data in NOAA format.
 
-### 2.3 Real ML Training Telemetry: Transformer Training Logs
-- **Identifier**: `real_ml_training_trace`
-- **Source**: Distributed Transformer Language Model Training Run (PyTorch / WandB telemetry)
-- **Retrieval Date**: 2026-10-27T17:15:00Z
-- **License**: Apache 2.0 / MIT
+### 2.3 Synthetic ML Training Telemetry: Transformer Training Logs (Synthetic PyTorch Format)
+- **Identifier**: `synthetic_ml_training_trace`
+- **Source**: Local synthetic generator (`python/generate_synthetic_data.py`) implementing PyTorch / WandB training trace schema
+- **Generation Date**: 2026-10-28T00:00:00Z
+- **License**: MIT / Apache 2.0 Generator
 - **Record Count**: 5,000 steps
-- **Source File Size**: 541,339 bytes
+- **Source File Size**: 531,339 bytes
+- **Source SHA-256**: `f64ab5bdf1f111a8a5573e02082e9a8ba91fe96cfe03f3ef7ed6bdb71bf86a56`
 - **Canonical Payload Size**: 541,339 bytes
-- **Canonical Payload SHA-256**: Recorded in `data/journal/manifests/dataset_provenance.json`
+- **Canonical Payload SHA-256**: `78a64a4b77e1050d2def3e3e837f1e134af80c6328f1aa3715d2ca5974bcb45a`
 - **Retained Fields**: `step`, `epoch`, `loss`, `accuracy`, `lr`, `grad_norm`, `val_loss`.
-- **Inclusion Rationale**: Evaluates machine learning experiment provenance, verifying step-by-step training reproducibility and loss convergence curves.
+- **Inclusion Rationale**: Evaluates machine learning experiment provenance, verifying step-by-step training reproducibility and loss convergence curves. Because these steps were generated locally via procedural simulation rather than exported from an external live cluster run, this corpus is accurately classified as synthetic telemetry in PyTorch schema.
 
 ### 2.4 Deterministic Scaling Synthetic Datasets
 - **Identifiers**: `synthetic_scale_100k`, `synthetic_scale_1m`, `synthetic_scale_5m`, `synthetic_scale_20m`

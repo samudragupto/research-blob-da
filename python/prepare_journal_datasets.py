@@ -46,6 +46,7 @@ def prepare_openalex_dataset() -> dict[str, Any]:
         "dataset_id": "real_scholarly_openalex",
         "dataset_name": "OpenAlex Scholarly Works Metadata",
         "category": "Real Academic Metadata",
+        "origin": "external_download",
         "format": "JSON",
         "license": "CC0 1.0 Universal",
         "source_url": "https://api.openalex.org/works?filter=publication_year:2023,is_oa:true&sort=cited_by_count:desc",
@@ -68,12 +69,12 @@ def prepare_openalex_dataset() -> dict[str, Any]:
             "is_oa",
             "concepts",
         ],
-        "description": "500 real academic works harvested from OpenAlex API sorted by citation count.",
+        "description": "500 real academic works harvested from OpenAlex API sorted by citation count. Bit-for-bit identical to the frozen v0.1.0 baseline fixture.",
     }
 
 
 def prepare_climate_dataset() -> dict[str, Any]:
-    # Extract real meteorological and environmental records from CSV
+    # Extract synthetic meteorological and environmental records from CSV
     csv_path = "data/climate_sensor_timeseries.csv"
     records = []
     if os.path.exists(csv_path):
@@ -108,13 +109,14 @@ def prepare_climate_dataset() -> dict[str, Any]:
         f.write(canonical_payload)
 
     return {
-        "dataset_id": "real_climate_sensor",
-        "dataset_name": "Atmospheric & Environmental Sensor Observations",
-        "category": "Real Environmental Telemetry",
+        "dataset_id": "synthetic_climate_sensor_noaa_format",
+        "dataset_name": "Atmospheric & Environmental Sensor Observations (Synthetic NOAA Format)",
+        "category": "Synthetic Environmental Telemetry (NOAA Format)",
+        "origin": "local_generator_noaa_schema",
         "format": "JSON (from CSV timeseries)",
-        "license": "Public Domain / NOAA Open Data Policy",
-        "source_url": "https://www.ncei.noaa.gov/products/land-based-station/global-historical-climatology-network-daily",
-        "retrieval_date_utc": "2026-10-27T17:00:00Z",
+        "license": "MIT / Public Domain Equivalent Schema",
+        "source_url": "Local generator (python/generate_synthetic_data.py) using NOAA ISD schema",
+        "retrieval_date_utc": "2026-10-28T00:00:00Z",
         "record_count": len(records),
         "source_file_path": dest_json,
         "source_bytes": len(raw_bytes),
@@ -130,7 +132,7 @@ def prepare_climate_dataset() -> dict[str, Any]:
             "wind_speed_ms",
             "pm25",
         ],
-        "description": "5,000 meteorological and PM2.5 observation records across multiple surface weather stations.",
+        "description": "5,000 synthetic meteorological and PM2.5 observation records generated locally using schema and distributions matching NOAA surface weather stations.",
     }
 
 
@@ -156,13 +158,14 @@ def prepare_ml_trace_dataset() -> dict[str, Any]:
         f.write(canonical_payload)
 
     return {
-        "dataset_id": "real_ml_training_trace",
-        "dataset_name": "Transformer Model Training Step Trace",
-        "category": "Real ML Training Telemetry",
+        "dataset_id": "synthetic_ml_training_trace",
+        "dataset_name": "Transformer Model Training Step Trace (Synthetic PyTorch Format)",
+        "category": "Synthetic ML Training Telemetry",
+        "origin": "local_generator_pytorch_schema",
         "format": "JSONL",
-        "license": "Apache 2.0 / MIT",
-        "source_url": "https://github.com/huggingface/transformers / PyTorch Training Metric Telemetry",
-        "retrieval_date_utc": "2026-10-27T17:15:00Z",
+        "license": "MIT / Apache 2.0 Generator",
+        "source_url": "Local generator (python/generate_synthetic_data.py) using PyTorch telemetry schema",
+        "retrieval_date_utc": "2026-10-28T00:00:00Z",
         "record_count": len(records),
         "source_file_path": dest_jsonl,
         "source_bytes": len(raw_bytes),
@@ -178,7 +181,7 @@ def prepare_ml_trace_dataset() -> dict[str, Any]:
             "grad_norm",
             "val_loss",
         ],
-        "description": "5,000 step-level training metrics from a distributed Transformer language model training run.",
+        "description": "5,000 synthetic step-level training metrics generated locally using schema matching distributed Transformer language model training runs.",
     }
 
 
@@ -221,6 +224,7 @@ def generate_synthetic_scaling_dataset(
         "dataset_id": f"synthetic_scale_{len(canonical_payload)//1024}k",
         "dataset_name": f"Deterministic Scaling Synthetic Dataset ({len(canonical_payload)//1024} KiB)",
         "category": "Deterministic Synthetic Benchmark",
+        "origin": "local_deterministic_generator",
         "format": "Canonical RFC 8785 Framed Stream",
         "license": "MIT",
         "source_url": "Internal Deterministic Generator (Seed 42)",
@@ -260,6 +264,7 @@ def generate_negative_control_dataset(
         "dataset_id": "negative_control_incompressible_1mib",
         "dataset_name": "Incompressible Pseudo-Random Binary Negative Control",
         "category": "Negative Control",
+        "origin": "local_seeded_prng_fixture",
         "format": "Raw Binary",
         "license": "MIT / Public Domain",
         "source_url": "Deterministic Mersenne Twister PRNG (Seed 42)",
